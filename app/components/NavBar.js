@@ -8,6 +8,7 @@ export default function NavBar() {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "Wordle", path: "/wordle" },
+    { name: "Sudoku", path: "/sudoku" },
   ];
 
   return (

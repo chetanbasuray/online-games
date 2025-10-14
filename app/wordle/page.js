@@ -1,10 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { WORDS } from "./words";
-import Keyboard from "../components/keyboard";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import FloatingBubbles from "../components/FloatingBubbles"; // new bubbles
+import Keyboard from "../components/keyboard";
+import { WORDS } from "./words";
 
 const confetti = dynamic(() => import("canvas-confetti"), { ssr: false });
 
@@ -12,7 +11,38 @@ const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-export default function Wordle() {
+const FloatingBubbles = ({ count = 15 }) => {
+  const [bubbles, setBubbles] = useState([]);
+
+  useEffect(() => {
+    const arr = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      size: 4 + Math.random() * 8,
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      duration: 3 + Math.random() * 5,
+      delay: Math.random() * 5,
+    }));
+    setBubbles(arr);
+  }, [count]);
+
+  return bubbles.map((b) => (
+    <motion.div
+      key={b.id}
+      className="absolute bg-white rounded-full opacity-30 pointer-events-none"
+      style={{
+        width: `${b.size}vmin`,
+        height: `${b.size}vmin`,
+        top: `${b.top}%`,
+        left: `${b.left}%`,
+      }}
+      animate={{ y: ["0%", "-20%", "0%"], x: ["0%", "5%", "0%"] }}
+      transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: "easeInOut" }}
+    />
+  ));
+};
+
+export default function WordlePage() {
   const [solution, setSolution] = useState("");
   const [guesses, setGuesses] = useState([]);
   const [currentGuess, setCurrentGuess] = useState("");
@@ -22,7 +52,7 @@ export default function Wordle() {
   const [letterStatus, setLetterStatus] = useState({});
   const hasGeneratedLetters = useRef(false);
 
-  // pick random word on mount or new game
+  // Pick random word
   const startNewGame = () => {
     const word = WORDS[Math.floor(Math.random() * WORDS.length)];
     setSolution(word);
@@ -36,7 +66,24 @@ export default function Wordle() {
 
   useEffect(() => startNewGame(), []);
 
-  // physical keyboard
+  // Floating letters for subtle background
+  const [floatingLetters, setFloatingLetters] = useState([]);
+  useEffect(() => {
+    if (hasGeneratedLetters.current) return;
+    const arr = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      size: 3 + Math.random() * 4,
+      duration: 10 + Math.random() * 8,
+      delay: Math.random() * 3,
+    }));
+    setFloatingLetters(arr);
+    hasGeneratedLetters.current = true;
+  }, []);
+
+  // Keyboard input
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isWin) return;
@@ -57,21 +104,20 @@ export default function Wordle() {
   const getGuessColors = (guess, solution) => {
     const result = Array(guess.length).fill("absent");
     const solutionLetters = solution.split("");
-    const guessLetters = guess.split("");
     const letterCount = {};
-    solutionLetters.forEach((l) => { letterCount[l] = (letterCount[l] || 0) + 1; });
+    solutionLetters.forEach((l) => (letterCount[l] = (letterCount[l] || 0) + 1));
 
-    guessLetters.forEach((l, i) => {
+    guess.split("").forEach((l, i) => {
       if (solutionLetters[i] === l) {
         result[i] = "correct";
-        letterCount[l] -= 1;
+        letterCount[l]--;
       }
     });
-    guessLetters.forEach((l, i) => {
+    guess.split("").forEach((l, i) => {
       if (result[i] === "correct") return;
       if (letterCount[l] > 0) {
         result[i] = "present";
-        letterCount[l] -= 1;
+        letterCount[l]--;
       }
     });
     return result;
@@ -90,15 +136,11 @@ export default function Wordle() {
   const submitGuess = async () => {
     const guessUpper = currentGuess.toUpperCase();
     if (guessUpper.length !== WORD_LENGTH) return;
-
     if (!WORDS.includes(guessUpper)) {
       setMessage("Word not found!");
       const rowDiv = document.querySelector(`.grid > div:nth-child(${guesses.length + 1})`);
       if (rowDiv) rowDiv.classList.add("shake");
-      setTimeout(() => {
-        if (rowDiv) rowDiv.classList.remove("shake");
-        setMessage("");
-      }, 500);
+      setTimeout(() => { if (rowDiv) rowDiv.classList.remove("shake"); setMessage(""); }, 500);
       return;
     }
 
@@ -117,14 +159,11 @@ export default function Wordle() {
     });
     setLetterStatus(newStatus);
 
-    // flip tiles sequentially
+    // Flip animation
     for (let i = 0; i < WORD_LENGTH; i++) {
-      setTimeout(() => {
-        setFlippedTiles((prev) => [...prev, { row: guesses.length, col: i }]);
-      }, i * 300);
+      setTimeout(() => setFlippedTiles((prev) => [...prev, { row: guesses.length, col: i }]), i * 300);
     }
 
-    // check win/loss after flips
     setTimeout(async () => {
       const colors = getGuessColors(guessUpper, solution);
       if (colors.every((c) => c === "correct")) {
@@ -141,15 +180,20 @@ export default function Wordle() {
   return (
     <div className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* floating bubbles */}
-      <FloatingBubbles count={15} area="full" zIndex={0} />
+      <FloatingBubbles count={15} />
 
       {/* main container */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-6">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 flex flex-col items-center justify-center gap-6"
+      >
         {/* title */}
         <motion.h1
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="text-4xl font-bold text-white mb-2"
         >
           Wordle
@@ -157,9 +201,9 @@ export default function Wordle() {
 
         {/* grid */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
           className="grid grid-rows-6 gap-2"
         >
           {Array.from({ length: MAX_GUESSES }).map((_, row) => {
@@ -199,31 +243,14 @@ export default function Wordle() {
 
         {/* buttons */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-4 flex gap-2"
         >
-          <button
-            onClick={submitGuess}
-            className="px-4 py-2 sm:px-3 sm:py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition"
-          >
-            Enter
-          </button>
-          <button
-            onClick={removeLetter}
-            className="px-4 py-2 sm:px-3 sm:py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition"
-          >
-            Backspace
-          </button>
-          {isWin && (
-            <button
-              onClick={startNewGame}
-              className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition"
-            >
-              New Game
-            </button>
-          )}
+          <button onClick={submitGuess} className="px-4 py-2 sm:px-3 sm:py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">Enter</button>
+          <button onClick={removeLetter} className="px-4 py-2 sm:px-3 sm:py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition">Backspace</button>
+          {isWin && <button onClick={startNewGame} className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">New Game</button>}
         </motion.div>
 
         {/* message */}
@@ -237,9 +264,8 @@ export default function Wordle() {
             {message}
           </motion.p>
         )}
-      </div>
+      </motion.div>
 
-      {/* glow and shake styles */}
       <style jsx>{`
         .glow-correct { box-shadow: 0 0 10px 3px rgba(34,197,94,0.7); }
         .glow-present { box-shadow: 0 0 10px 3px rgba(234,179,8,0.7); }

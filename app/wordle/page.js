@@ -1,11 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import Keyboard from "../components/keyboard";
 import { WORDS } from "./words";
-
-const confetti = dynamic(() => import("canvas-confetti"), { ssr: false });
 
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
@@ -67,7 +64,7 @@ export default function WordlePage() {
   useEffect(() => startNewGame(), []);
 
   // Floating letters for subtle background
-  const [floatingLetters, setFloatingLetters] = useState([]);
+  const [setFloatingLetters] = useState([]);
   useEffect(() => {
     if (hasGeneratedLetters.current) return;
     const arr = Array.from({ length: 12 }, (_, i) => ({

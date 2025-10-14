@@ -26,24 +26,6 @@ function isValid(board, row, col, num) {
   return true;
 }
 
-function solveBacktrack(board) {
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (board[r][c] === 0) {
-        for (let n = 1; n <= 9; n++) {
-          if (isValid(board, r, c, n)) {
-            board[r][c] = n;
-            if (solveBacktrack(board)) return true;
-            board[r][c] = 0;
-          }
-        }
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 // Count solutions with early exit when count > limit
 function countSolutions(board, limit = 2) {
   let count = 0;

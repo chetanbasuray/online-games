@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import * as Tone from "tone";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function SudokuGrid({ puzzleData, givenMask, onComplete }) {
   const SIZE = 9;

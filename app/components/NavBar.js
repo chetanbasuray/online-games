@@ -8,7 +8,18 @@ export default function NavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-purple-700 text-white p-4 shadow-md flex flex-wrap gap-4 justify-center">
+    <nav className="bg-purple-700 text-white p-4 shadow-md flex flex-wrap gap-4 justify-center items-center">
+      {/* Home link */}
+      <Link
+        href="/"
+        className={`px-4 py-2 rounded-lg font-semibold transition ${
+          pathname === "/" ? "bg-white text-purple-700" : "hover:bg-white/30"
+        }`}
+      >
+        Home
+      </Link>
+
+      {/* Game links */}
       {GAMES.map((game) => {
         const isActive = pathname === game.path;
         return (

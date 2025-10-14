@@ -255,7 +255,11 @@ export default function SudokuPage() {
                 value={num || ""}
                 readOnly={isGiven}
                 className={`${glow} text-center text-lg sm:text-xl w-12 h-12 sm:w-14 sm:h-14 rounded-md focus:outline-none`}
-                style={{ backgroundColor: blockColor, color: isGiven ? "black" : "white" }}
+                style={{ 
+                backgroundColor: blockColor, 
+                color: isGiven ? "black" : "#2563EB", 
+                fontWeight: isGiven ? "normal" : "bold" 
+              }}
               />
             );
           })

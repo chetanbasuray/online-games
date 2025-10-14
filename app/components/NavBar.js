@@ -1,32 +1,29 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { GAMES } from "../data/games";
 
 export default function NavBar() {
   const pathname = usePathname();
 
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Wordle", path: "/wordle" },
-    { name: "Sudoku", path: "/sudoku" },
-  ];
-
   return (
-    <nav className="bg-gray-900 text-white px-6 py-4 flex gap-6 items-center shadow-lg">
-      <h1 className="font-bold text-xl">🧠 Online Games</h1>
-      <div className="flex gap-4">
-        {navItems.map((item) => (
+    <nav className="bg-purple-700 text-white p-4 shadow-md flex flex-wrap gap-4 justify-center">
+      {GAMES.map((game) => {
+        const isActive = pathname === game.path;
+        return (
           <Link
-            key={item.path}
-            href={item.path}
-            className={`hover:text-yellow-400 ${
-              pathname === item.path ? "text-yellow-400" : "text-white"
+            key={game.path}
+            href={game.comingSoon ? "#" : game.path}
+            className={`px-4 py-2 rounded-lg font-semibold transition ${
+              isActive ? "bg-white text-purple-700" : "hover:bg-white/30"
             }`}
+            title={game.comingSoon ? "Coming Soon" : game.name}
           >
-            {item.name}
+            {game.name} {game.comingSoon && "🚧"}
           </Link>
-        ))}
-      </div>
+        );
+      })}
     </nav>
   );
 }

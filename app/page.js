@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { GAMES } from "./data/games";
 
 export default function HomePage() {
   const [bubbles, setBubbles] = useState([]);
@@ -63,19 +64,16 @@ export default function HomePage() {
         transition={{ duration: 2 }}
         className="flex gap-6 flex-wrap justify-center"
       >
-        <a
-          href="/wordle"
-          className="px-6 py-3 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:scale-110 transition-transform"
-        >
-          Play Wordle
-        </a>
-        <a
-          href="/sudoku"
-          className="px-6 py-3 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:scale-110 transition-transform"
-        >
-          Play Sudoku
-        </a>
-        {/* Add more game buttons here as you add new games */}
+        {GAMES.map((game) => (
+          <a
+            key={game.path}
+            href={game.comingSoon ? "#" : game.path}
+            className="px-6 py-3 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:scale-110 transition-transform"
+            title={game.comingSoon ? "Coming Soon" : game.name}
+          >
+            {game.name} {game.comingSoon && "🚧"}
+          </a>
+        ))}
       </motion.div>
     </div>
   );

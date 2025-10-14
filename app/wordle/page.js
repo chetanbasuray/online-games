@@ -21,12 +21,21 @@ export default function Wordle() {
   const [letterStatus, setLetterStatus] = useState({});
   const [floatingLetters, setFloatingLetters] = useState([]);
   const hasGeneratedLetters = useRef(false);
+  const confettiRef = useRef(null);
 
-  // pick random word on mount
-  useEffect(() => {
+  // pick random word on mount or new game
+  const startNewGame = () => {
     const word = WORDS[Math.floor(Math.random() * WORDS.length)];
     setSolution(word);
-  }, []);
+    setGuesses([]);
+    setCurrentGuess("");
+    setFlippedTiles([]);
+    setIsWin(false);
+    setMessage("");
+    setLetterStatus({});
+  };
+
+  useEffect(() => startNewGame(), []);
 
   // generate subtle background floating letters once
   useEffect(() => {
@@ -92,13 +101,13 @@ export default function Wordle() {
     if (!guess) return "bg-white border-gray-400 text-black";
     const colors = getGuessColors(guess, solution);
     switch (colors[index]) {
-      case "correct": return "bg-green-600 text-white border-green-700";
-      case "present": return "bg-yellow-400 text-white border-yellow-500";
+      case "correct": return "bg-green-600 text-white border-green-700 glow-correct";
+      case "present": return "bg-yellow-400 text-white border-yellow-500 glow-present";
       default: return "bg-gray-400 text-white border-gray-500";
     }
   };
 
-  const submitGuess = () => {
+  const submitGuess = async () => {
     const guessUpper = currentGuess.toUpperCase();
     if (guessUpper.length !== WORD_LENGTH) return;
 
@@ -128,28 +137,30 @@ export default function Wordle() {
     });
     setLetterStatus(newStatus);
 
+    // flip tiles sequentially
     for (let i = 0; i < WORD_LENGTH; i++) {
       setTimeout(() => {
         setFlippedTiles((prev) => [...prev, { row: guesses.length, col: i }]);
       }, i * 300);
     }
 
-    if (guessUpper === solution) {
-      setIsWin(true);
-      setMessage("🎉 You guessed it!");
-      setTimeout(() => {
-        import("canvas-confetti").then((module) => {
-          module.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        });
-      }, WORD_LENGTH * 300);
-    } else if (newGuesses.length === MAX_GUESSES) {
-      setMessage(`😞 The word was ${solution}`);
-    }
+    // check win/loss after flips
+    setTimeout(async () => {
+      const colors = getGuessColors(guessUpper, solution);
+      if (colors.every((c) => c === "correct")) {
+        setIsWin(true);
+        setMessage("🎉 You guessed it!");
+        const confettiModule = await import("canvas-confetti");
+        confettiModule.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      } else if (newGuesses.length === MAX_GUESSES) {
+        setMessage(`😞 The word was ${solution}`);
+      }
+    }, WORD_LENGTH * 300 + 50);
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden flex flex-col items-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      {/* floating subtle letters */}
+      {/* floating letters */}
       {floatingLetters.map((f) => (
         <motion.div
           key={f.id}
@@ -191,10 +202,9 @@ export default function Wordle() {
         {Array.from({ length: MAX_GUESSES }).map((_, row) => {
           const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
           const isCurrentRow = row === guesses.length;
-          const isWinningRow = isWin && row === guesses.length - 1;
 
           return (
-            <div key={row} className="flex gap-2 justify-center flex-wrap">
+            <div key={row} className="flex gap-2 justify-center flex-wrap grid-row">
               {Array.from({ length: WORD_LENGTH }).map((_, col) => {
                 const letter = guess[col] || "";
                 const bgColor =
@@ -210,7 +220,7 @@ export default function Wordle() {
                       flipped ? "flipped" : ""
                     } ${bgColor}`}
                     style={{ transitionDelay: `${col * 300}ms` }}
-                    animate={isWinningRow ? { scale: [1, 1.2, 1] } : {}}
+                    animate={!isCurrentRow && guess ? { scale: [1, 1.1, 1] } : {}}
                     transition={{ duration: 0.3 }}
                   >
                     {letter}
@@ -244,8 +254,17 @@ export default function Wordle() {
         >
           Backspace
         </button>
+        {isWin && (
+          <button
+            onClick={startNewGame}
+            className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition"
+          >
+            New Game
+          </button>
+        )}
       </motion.div>
 
+      {/* message */}
       {message && (
         <motion.p
           initial={{ opacity: 0, y: -10 }}
@@ -256,6 +275,20 @@ export default function Wordle() {
           {message}
         </motion.p>
       )}
+
+      {/* glow and shake styles */}
+      <style jsx>{`
+        .glow-correct { box-shadow: 0 0 10px 3px rgba(34,197,94,0.7); }
+        .glow-present { box-shadow: 0 0 10px 3px rgba(234,179,8,0.7); }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+          0% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          50% { transform: translateX(5px); }
+          75% { transform: translateX(-5px); }
+          100% { transform: translateX(0); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,12 +1,11 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Keyboard from "../components/keyboard";
 import { WORDS } from "./words";
 
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const FloatingBubbles = ({ count = 15 }) => {
   const [bubbles, setBubbles] = useState([]);
@@ -47,7 +46,6 @@ export default function WordlePage() {
   const [isWin, setIsWin] = useState(false);
   const [message, setMessage] = useState("");
   const [letterStatus, setLetterStatus] = useState({});
-  const hasGeneratedLetters = useRef(false);
 
   // Pick random word
   const startNewGame = () => {
@@ -62,23 +60,6 @@ export default function WordlePage() {
   };
 
   useEffect(() => startNewGame(), []);
-
-  // Floating letters for subtle background
-  const [setFloatingLetters] = useState([]);
-  useEffect(() => {
-    if (hasGeneratedLetters.current) return;
-    const arr = Array.from({ length: 12 }, (_, i) => ({
-      id: i,
-      letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
-      top: Math.random() * 100,
-      left: Math.random() * 100,
-      size: 3 + Math.random() * 4,
-      duration: 10 + Math.random() * 8,
-      delay: Math.random() * 3,
-    }));
-    setFloatingLetters(arr);
-    hasGeneratedLetters.current = true;
-  }, []);
 
   // Keyboard input
   useEffect(() => {

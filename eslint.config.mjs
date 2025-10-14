@@ -12,7 +12,7 @@ export default defineConfig([
       "out/**",
       "dist/**",
       "build/**",
-    ], // ✅ add this
+    ],
   },
   {
     files: ["**/*.{js,mjs,cjs,jsx}"],
@@ -33,6 +33,11 @@ export default defineConfig([
       "react/react-in-jsx-scope": "off",
       "react/no-unknown-property": "off",
       "react/prop-types": "off",
+    },
+    settings: {
+      react: {
+        version: "detect",
+      },
     },
   },
 ]);

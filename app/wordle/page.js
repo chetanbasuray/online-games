@@ -4,6 +4,7 @@ import { WORDS } from "./words";
 import Keyboard from "../components/keyboard";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import FloatingBubbles from "../components/FloatingBubbles"; // new bubbles
 
 const confetti = dynamic(() => import("canvas-confetti"), { ssr: false });
 
@@ -19,9 +20,7 @@ export default function Wordle() {
   const [isWin, setIsWin] = useState(false);
   const [message, setMessage] = useState("");
   const [letterStatus, setLetterStatus] = useState({});
-  const [floatingLetters, setFloatingLetters] = useState([]);
   const hasGeneratedLetters = useRef(false);
-  const confettiRef = useRef(null);
 
   // pick random word on mount or new game
   const startNewGame = () => {
@@ -36,22 +35,6 @@ export default function Wordle() {
   };
 
   useEffect(() => startNewGame(), []);
-
-  // generate subtle background floating letters once
-  useEffect(() => {
-    if (hasGeneratedLetters.current) return;
-    const lettersArray = Array.from({ length: 12 }, (_, i) => ({
-      id: i,
-      letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
-      top: Math.random() * 100,
-      left: Math.random() * 100,
-      size: 3 + Math.random() * 4,
-      duration: 10 + Math.random() * 8,
-      delay: Math.random() * 3,
-    }));
-    setFloatingLetters(lettersArray);
-    hasGeneratedLetters.current = true;
-  }, []);
 
   // physical keyboard
   useEffect(() => {
@@ -69,7 +52,6 @@ export default function Wordle() {
   const addLetter = (letter) => {
     if (currentGuess.length < WORD_LENGTH) setCurrentGuess((prev) => prev + letter);
   };
-
   const removeLetter = () => setCurrentGuess((prev) => prev.slice(0, -1));
 
   const getGuessColors = (guess, solution) => {
@@ -85,7 +67,6 @@ export default function Wordle() {
         letterCount[l] -= 1;
       }
     });
-
     guessLetters.forEach((l, i) => {
       if (result[i] === "correct") return;
       if (letterCount[l] > 0) {
@@ -93,7 +74,6 @@ export default function Wordle() {
         letterCount[l] -= 1;
       }
     });
-
     return result;
   };
 
@@ -159,122 +139,105 @@ export default function Wordle() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-col items-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      {/* floating letters */}
-      {floatingLetters.map((f) => (
-        <motion.div
-          key={f.id}
-          className="absolute text-white/15 font-bold select-none"
-          style={{
-            fontSize: `${f.size}vmin`,
-            top: `${f.top}%`,
-            left: `${f.left}%`,
-          }}
-          animate={{ y: ["0%", "-10%", "0%"] }}
-          transition={{
-            duration: f.duration,
-            repeat: Infinity,
-            delay: f.delay,
-            ease: "easeInOut",
-          }}
-        >
-          {f.letter}
-        </motion.div>
-      ))}
+    <div className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      {/* floating bubbles */}
+      <FloatingBubbles count={15} area="full" zIndex={0} />
 
-      {/* title */}
-      <motion.h1
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-4xl font-bold text-white mb-6 z-10"
-      >
-        Wordle
-      </motion.h1>
-
-      {/* grid */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="grid grid-rows-6 gap-2 z-10"
-      >
-        {Array.from({ length: MAX_GUESSES }).map((_, row) => {
-          const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
-          const isCurrentRow = row === guesses.length;
-
-          return (
-            <div key={row} className="flex gap-2 justify-center flex-wrap grid-row">
-              {Array.from({ length: WORD_LENGTH }).map((_, col) => {
-                const letter = guess[col] || "";
-                const bgColor =
-                  !isCurrentRow && guess
-                    ? getTileColor(letter, col, guess)
-                    : "bg-white border-gray-400 text-black";
-                const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
-
-                return (
-                  <motion.div
-                    key={col}
-                    className={`w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded border tile ${
-                      flipped ? "flipped" : ""
-                    } ${bgColor}`}
-                    style={{ transitionDelay: `${col * 300}ms` }}
-                    animate={!isCurrentRow && guess ? { scale: [1, 1.1, 1] } : {}}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {letter}
-                  </motion.div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </motion.div>
-
-      {/* keyboard */}
-      <Keyboard guessedLetters={Object.keys(letterStatus)} onKeyPress={addLetter} letterStatus={letterStatus} />
-
-      {/* buttons */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2 }}
-        className="mt-4 flex gap-2 z-10"
-      >
-        <button
-          onClick={submitGuess}
-          className="px-4 py-2 sm:px-3 sm:py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition"
-        >
-          Enter
-        </button>
-        <button
-          onClick={removeLetter}
-          className="px-4 py-2 sm:px-3 sm:py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition"
-        >
-          Backspace
-        </button>
-        {isWin && (
-          <button
-            onClick={startNewGame}
-            className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition"
-          >
-            New Game
-          </button>
-        )}
-      </motion.div>
-
-      {/* message */}
-      {message && (
-        <motion.p
-          initial={{ opacity: 0, y: -10 }}
+      {/* main container */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-6">
+        {/* title */}
+        <motion.h1
+          initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mt-6 text-lg font-semibold text-white z-10"
+          transition={{ duration: 0.8 }}
+          className="text-4xl font-bold text-white mb-2"
         >
-          {message}
-        </motion.p>
-      )}
+          Wordle
+        </motion.h1>
+
+        {/* grid */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="grid grid-rows-6 gap-2"
+        >
+          {Array.from({ length: MAX_GUESSES }).map((_, row) => {
+            const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
+            const isCurrentRow = row === guesses.length;
+            return (
+              <div key={row} className="flex gap-2 justify-center flex-wrap grid-row">
+                {Array.from({ length: WORD_LENGTH }).map((_, col) => {
+                  const letter = guess[col] || "";
+                  const bgColor =
+                    !isCurrentRow && guess
+                      ? getTileColor(letter, col, guess)
+                      : "bg-white border-gray-400 text-black";
+                  const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
+
+                  return (
+                    <motion.div
+                      key={col}
+                      className={`w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded border tile ${
+                        flipped ? "flipped" : ""
+                      } ${bgColor}`}
+                      style={{ transitionDelay: `${col * 300}ms` }}
+                      animate={!isCurrentRow && guess ? { scale: [1, 1.1, 1] } : {}}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {letter}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* keyboard */}
+        <Keyboard guessedLetters={Object.keys(letterStatus)} onKeyPress={addLetter} letterStatus={letterStatus} />
+
+        {/* buttons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2 }}
+          className="mt-4 flex gap-2"
+        >
+          <button
+            onClick={submitGuess}
+            className="px-4 py-2 sm:px-3 sm:py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition"
+          >
+            Enter
+          </button>
+          <button
+            onClick={removeLetter}
+            className="px-4 py-2 sm:px-3 sm:py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition"
+          >
+            Backspace
+          </button>
+          {isWin && (
+            <button
+              onClick={startNewGame}
+              className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition"
+            >
+              New Game
+            </button>
+          )}
+        </motion.div>
+
+        {/* message */}
+        {message && (
+          <motion.p
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mt-6 text-lg font-semibold text-white"
+          >
+            {message}
+          </motion.p>
+        )}
+      </div>
 
       {/* glow and shake styles */}
       <style jsx>{`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
 
 const BOARD_WIDTH = 10;
@@ -260,6 +260,7 @@ const formatCellKey = (x, y) => `${x}-${y}`;
 
 export default function TetrisGame() {
   const [board, setBoard] = useState(() => createEmptyBoard());
+  const [scale, setScale] = useState(1);
   const [currentPiece, setCurrentPiece] = useState(null);
   const [position, setPosition] = useState(() => createInitialPosition());
   const [nextPiece, setNextPiece] = useState(() => getRandomPiece());
@@ -268,6 +269,7 @@ export default function TetrisGame() {
   const [isPaused, setIsPaused] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [dropInterval, setDropInterval] = useState(INITIAL_DROP_INTERVAL);
+  const contentRef = useRef(null);
 
   const level = useMemo(
     () => Math.floor(linesCleared / 10) + 1,
@@ -303,6 +305,59 @@ export default function TetrisGame() {
     );
     setDropInterval(nextInterval);
   }, [level]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const updateScale = () => {
+      if (!contentRef.current) {
+        return;
+      }
+
+      const { offsetWidth, offsetHeight } = contentRef.current;
+      if (!offsetWidth || !offsetHeight) {
+        return;
+      }
+
+      const horizontalMargin = 48;
+      const verticalMargin = 72;
+      const availableWidth = Math.max(
+        window.innerWidth - horizontalMargin,
+        320,
+      );
+      const availableHeight = Math.max(
+        window.innerHeight - verticalMargin,
+        320,
+      );
+
+      const widthScale = availableWidth / offsetWidth;
+      const heightScale = availableHeight / offsetHeight;
+      const nextScale = Math.min(1, widthScale, heightScale);
+
+      setScale((previous) =>
+        Math.abs(previous - nextScale) > 0.01 ? nextScale : previous,
+      );
+    };
+
+    updateScale();
+
+    window.addEventListener("resize", updateScale);
+
+    let resizeObserver;
+    if (typeof ResizeObserver !== "undefined" && contentRef.current) {
+      resizeObserver = new ResizeObserver(() => updateScale());
+      resizeObserver.observe(contentRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateScale);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, []);
 
   const movePiece = useCallback(
     (dx, dy) => {
@@ -597,167 +652,177 @@ export default function TetrisGame() {
   }, [nextPiece]);
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen overflow-hidden">
       <FloatingBubbles />
-      <div className="relative z-10 flex flex-col items-center gap-8 text-slate-100">
-        <div className="text-center">
-          <h1 className="text-4xl font-semibold uppercase tracking-[0.4em] text-white/80">
-            Cosmic Tetris
-          </h1>
-          <p className="mt-3 text-sm text-slate-300/80">
-            Stack the falling tetrominoes to clear lines and climb through the
-            levels of the cosmos.
-          </p>
-        </div>
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
+        <div
+          className="origin-top transition-transform duration-300 ease-out"
+          style={{ transform: `scale(${scale})` }}
+        >
+          <div
+            ref={contentRef}
+            className="flex flex-col items-center gap-8 text-slate-100"
+          >
+            <div className="text-center">
+              <h1 className="text-4xl font-semibold uppercase tracking-[0.4em] text-white/80">
+                Cosmic Tetris
+              </h1>
+              <p className="mt-3 text-sm text-slate-300/80">
+                Stack the falling tetrominoes to clear lines and climb through
+                the levels of the cosmos.
+              </p>
+            </div>
 
-        <div className="flex w-full max-w-5xl flex-col items-center gap-6 lg:flex-row lg:items-stretch lg:justify-center">
-          <div className="order-2 flex w-full flex-col gap-4 lg:order-1 lg:w-72">
-            <div className="cosmic-card flex w-full flex-col gap-3 text-xs text-slate-200/90">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Score
-                  </span>
-                  <p className="text-xl font-semibold text-white/90">
-                    {score.toLocaleString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Level
-                  </span>
-                  <p className="text-xl font-semibold text-white/90">{level}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Lines
-                  </span>
-                  <p className="text-lg font-medium text-white/80">{linesCleared}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Status
-                  </span>
-                  <p className="text-sm font-medium text-white/70">
-                    {isGameOver
-                      ? "Game Over"
-                      : isPaused
-                        ? "Paused"
-                        : "Falling"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Drop Speed
-                  </span>
-                  <p className="text-sm font-medium text-white/70">
-                    {(dropInterval / 1000).toFixed(2)}s
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                    Next Piece
-                  </span>
-                  <div className="mt-1 inline-block rounded-xl border border-slate-700/40 bg-slate-900/60 p-2 shadow-inner">
-                    <div className="grid grid-cols-4 gap-[3px]">
-                      {previewGrid.map((row, rowIndex) =>
-                        row.map((isFilled, columnIndex) => {
-                          const previewKey = `${rowIndex}-${columnIndex}`;
-                          const previewClasses = isFilled
-                            ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm shadow-[0_0_12px_rgba(148,163,184,0.35)]`
-                            : "h-4 w-4 rounded-sm border border-slate-700/50 bg-slate-900/40";
-                          return (
-                            <div key={previewKey} className={previewClasses} aria-hidden />
-                          );
-                        }),
-                      )}
+            <div className="flex w-full max-w-5xl flex-col items-center gap-6 lg:flex-row lg:items-stretch lg:justify-center">
+              <div className="order-2 flex w-full flex-col gap-4 lg:order-1 lg:w-72">
+                <div className="cosmic-card flex w-full flex-col gap-3 text-xs text-slate-200/90">
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Score
+                      </span>
+                      <p className="text-xl font-semibold text-white/90">
+                        {score.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Level
+                      </span>
+                      <p className="text-xl font-semibold text-white/90">{level}</p>
                     </div>
                   </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Lines
+                      </span>
+                      <p className="text-lg font-medium text-white/80">{linesCleared}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Status
+                      </span>
+                      <p className="text-sm font-medium text-white/70">
+                        {isGameOver
+                          ? "Game Over"
+                          : isPaused
+                            ? "Paused"
+                            : "Falling"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div>
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Drop Speed
+                      </span>
+                      <p className="text-sm font-medium text-white/70">
+                        {(dropInterval / 1000).toFixed(2)}s
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+                        Next Piece
+                      </span>
+                      <div className="mt-1 inline-block rounded-xl border border-slate-700/40 bg-slate-900/60 p-2 shadow-inner">
+                        <div className="grid grid-cols-4 gap-[3px]">
+                          {previewGrid.map((row, rowIndex) =>
+                            row.map((isFilled, columnIndex) => {
+                              const previewKey = `${rowIndex}-${columnIndex}`;
+                              const previewClasses = isFilled
+                                ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm shadow-[0_0_12px_rgba(148,163,184,0.35)]`
+                                : "h-4 w-4 rounded-sm border border-slate-700/50 bg-slate-900/40";
+                              return (
+                                <div key={previewKey} className={previewClasses} aria-hidden />
+                              );
+                            }),
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={resetGame}
+                      className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
+                    >
+                      Restart
+                    </button>
+                    <button
+                      type="button"
+                      onClick={togglePause}
+                      className={`cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 ${isPaused ? "cosmic-pill--active" : ""}`}
+                    >
+                      {isPaused ? "Resume" : "Pause"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={hardDrop}
+                      className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
+                    >
+                      Hard Drop
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={resetGame}
-                  className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                >
-                  Restart
-                </button>
-                <button
-                  type="button"
-                  onClick={togglePause}
-                  className={`cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 ${isPaused ? "cosmic-pill--active" : ""}`}
-                >
-                  {isPaused ? "Resume" : "Pause"}
-                </button>
-                <button
-                  type="button"
-                  onClick={hardDrop}
-                  className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                >
-                  Hard Drop
-                </button>
-              </div>
-            </div>
 
-            <div className="cosmic-card text-xs text-slate-300/80">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
-                Controls
-              </h2>
-              <ul className="mt-3 space-y-2 leading-relaxed">
-                <li>
-                  <span className="font-semibold text-white/80">Arrow Keys</span> —
-                  Move left, right, and soft drop
-                </li>
-                <li>
-                  <span className="font-semibold text-white/80">Arrow Up / X</span> —
-                  Rotate clockwise
-                </li>
-                <li>
-                  <span className="font-semibold text-white/80">Z</span> — Rotate
-                  counter-clockwise
-                </li>
-                <li>
-                  <span className="font-semibold text-white/80">Space</span> — Hard
-                  drop
-                </li>
-                <li>
-                  <span className="font-semibold text-white/80">P</span> — Pause or
-                  resume
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="order-1 flex items-center justify-center lg:order-2">
-            <div className="relative rounded-[28px] border border-slate-700/40 bg-slate-900/50 p-5 shadow-[0_24px_70px_rgba(2,6,23,0.65)] backdrop-blur-sm">
-              <div className="grid grid-cols-10 gap-[4px]">
-                {board.map((row, rowIndex) =>
-                  row.map((cell, columnIndex) =>
-                    renderBoardCell(cell, columnIndex, rowIndex),
-                  ),
-                )}
+                <div className="cosmic-card text-xs text-slate-300/80">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
+                    Controls
+                  </h2>
+                  <ul className="mt-3 space-y-2 leading-relaxed">
+                    <li>
+                      <span className="font-semibold text-white/80">Arrow Keys</span> —
+                      Move left, right, and soft drop
+                    </li>
+                    <li>
+                      <span className="font-semibold text-white/80">Arrow Up / X</span> —
+                      Rotate clockwise
+                    </li>
+                    <li>
+                      <span className="font-semibold text-white/80">Z</span> — Rotate
+                      counter-clockwise
+                    </li>
+                    <li>
+                      <span className="font-semibold text-white/80">Space</span> — Hard
+                      drop
+                    </li>
+                    <li>
+                      <span className="font-semibold text-white/80">P</span> — Pause or
+                      resume
+                    </li>
+                  </ul>
+                </div>
               </div>
-              {isGameOver ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/80 backdrop-blur">
-                  <p className="text-2xl font-semibold text-white/90">Game Over</p>
-                  <p className="mt-2 text-sm text-slate-300/80">
-                    Press restart to play again.
-                  </p>
+
+              <div className="order-1 flex items-center justify-center lg:order-2">
+                <div className="relative rounded-[28px] border border-slate-700/40 bg-slate-900/50 p-5 shadow-[0_24px_70px_rgba(2,6,23,0.65)] backdrop-blur-sm">
+                  <div className="grid grid-cols-10 gap-[4px]">
+                    {board.map((row, rowIndex) =>
+                      row.map((cell, columnIndex) =>
+                        renderBoardCell(cell, columnIndex, rowIndex),
+                      ),
+                    )}
+                  </div>
+                  {isGameOver ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/80 backdrop-blur">
+                      <p className="text-2xl font-semibold text-white/90">Game Over</p>
+                      <p className="mt-2 text-sm text-slate-300/80">
+                        Press restart to play again.
+                      </p>
+                    </div>
+                  ) : null}
+                  {isPaused && !isGameOver ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/70 backdrop-blur">
+                      <p className="text-xl font-semibold text-white/90">Paused</p>
+                      <p className="mt-2 text-xs text-slate-300/80">
+                        Press resume or the P key to continue.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-              {isPaused && !isGameOver ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/70 backdrop-blur">
-                  <p className="text-xl font-semibold text-white/90">Paused</p>
-                  <p className="mt-2 text-xs text-slate-300/80">
-                    Press resume or the P key to continue.
-                  </p>
-                </div>
-              ) : null}
+              </div>
             </div>
           </div>
         </div>

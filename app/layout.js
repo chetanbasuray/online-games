@@ -5,6 +5,9 @@ import CosmicBackground from "./components/CosmicBackground";
 export const metadata = {
   title: "Online Games",
   description: "Play Wordle and Sudoku in your browser!",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {

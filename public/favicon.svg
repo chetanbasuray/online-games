@@ -1,0 +1,28 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Online Games Favicon</title>
+  <desc id="desc">Minimal cosmic logo with glowing orbital and pixel cross.</desc>
+  <defs>
+    <radialGradient id="favicon-bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.75" />
+      <stop offset="60%" stop-color="#172554" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+    <linearGradient id="favicon-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="30" fill="url(#favicon-bg)" />
+  <path d="M16 26c6-6 26-6 32 0" stroke="url(#favicon-ring)" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9" />
+  <path d="M18 38c8 10 20 12 28 0" stroke="url(#favicon-ring)" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8" />
+
+  <rect x="24" y="24" width="16" height="16" rx="6" fill="#0f172a" stroke="#0ea5e9" stroke-width="2" />
+  <rect x="27.5" y="27.5" width="4" height="4" rx="1" fill="#38bdf8" />
+  <rect x="32.5" y="27.5" width="4" height="4" rx="1" fill="#38bdf8" />
+  <rect x="27.5" y="32.5" width="4" height="4" rx="1" fill="#38bdf8" />
+  <rect x="32.5" y="32.5" width="4" height="4" rx="1" fill="#38bdf8" />
+
+  <circle cx="22" cy="32" r="3" fill="#fbbf24" />
+  <circle cx="42" cy="32" r="3" fill="#f472b6" />
+</svg>

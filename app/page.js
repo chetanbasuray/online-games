@@ -41,8 +41,15 @@ export default function HomePage() {
             title={game.comingSoon ? "Coming Soon" : game.name}
           >
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-white">{game.name}</h2>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-semibold text-white">{game.name}</h2>
+                  {game.badge && (
+                    <span className="cosmic-pill px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.3em] text-sky-100">
+                      {game.badge}
+                    </span>
+                  )}
+                </div>
                 <motion.span
                   whileHover={{ rotate: 12 }}
                   className="cosmic-pill px-3 py-1 text-xs uppercase tracking-widest text-white/80"

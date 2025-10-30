@@ -181,41 +181,6 @@ body {
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
 }
 
-.game-tile {
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1),
-    background-color 120ms ease,
-    color 120ms ease,
-    border-color 120ms ease,
-    box-shadow 120ms ease;
-  will-change: transform;
-}
-
-.tile-pop {
-  animation: tilePop 140ms cubic-bezier(0.2, 0.8, 0.4, 1);
-}
-
-@keyframes tilePop {
-  0% {
-    transform: scale(0.94);
-  }
-  60% {
-    transform: scale(1.06);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .game-tile {
-    transition: none;
-  }
-
-  .tile-pop {
-    animation: none;
-  }
-}
-
 .cosmic-heading {
   background: linear-gradient(90deg, #f8fafc 0%, #a5f3fc 40%, #c084fc 90%);
   -webkit-background-clip: text;

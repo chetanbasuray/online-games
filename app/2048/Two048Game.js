@@ -182,7 +182,7 @@ const TILE_STYLES = {
 };
 
 const getTileClasses = (value) =>
-  `${TILE_STYLES[value] ?? "bg-lime-500/80 text-slate-900 text-xl border border-lime-200/60"} rounded-xl font-bold flex items-center justify-center game-tile shadow-[0_12px_30px_rgba(79,70,229,0.35)] select-none backdrop-blur-sm`;
+  `${TILE_STYLES[value] ?? "bg-lime-500/80 text-slate-900 text-xl border border-lime-200/60"} rounded-xl font-bold flex items-center justify-center transition-all duration-200 shadow-[0_12px_30px_rgba(79,70,229,0.35)] select-none backdrop-blur-sm`;
 
 const formatBoardKey = (rowIndex, columnIndex) => `${rowIndex}-${columnIndex}`;
 
@@ -208,7 +208,6 @@ export default function Two048Game() {
   const [bestScore, setBestScore] = useState(0);
   const [hasWon, setHasWon] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [recentlyChanged, setRecentlyChanged] = useState([]);
   const touchStartRef = useRef(null);
 
   const startNewGame = useCallback(() => {
@@ -233,26 +232,6 @@ export default function Two048Game() {
         }
 
         const boardWithTile = addRandomTile(movedBoard);
-
-        const changedTiles = [];
-
-        for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex += 1) {
-          for (
-            let columnIndex = 0;
-            columnIndex < GRID_SIZE;
-            columnIndex += 1
-          ) {
-            if (
-              boardWithTile[rowIndex][columnIndex] !==
-                currentBoard[rowIndex][columnIndex] &&
-              boardWithTile[rowIndex][columnIndex] !== 0
-            ) {
-              changedTiles.push(formatBoardKey(rowIndex, columnIndex));
-            }
-          }
-        }
-
-        setRecentlyChanged(changedTiles);
 
         if (scoreGained) {
           setScore((previous) => previous + scoreGained);
@@ -340,39 +319,20 @@ export default function Two048Game() {
     [handleMove]
   );
 
-  useEffect(() => {
-    if (recentlyChanged.length === 0) {
-      return undefined;
-    }
-
-    const timeout = setTimeout(() => {
-      setRecentlyChanged([]);
-    }, 140);
-
-    return () => clearTimeout(timeout);
-  }, [recentlyChanged]);
-
-  const boardTiles = useMemo(() => {
-    const activeTiles = new Set(recentlyChanged);
-
-    return board.map((row, rowIndex) =>
-      row.map((value, columnIndex) => {
-        const tileKey = formatBoardKey(rowIndex, columnIndex);
-        const isActive = activeTiles.has(tileKey);
-
-        return (
+  const boardTiles = useMemo(
+    () =>
+      board.map((row, rowIndex) =>
+        row.map((value, columnIndex) => (
           <div
-            key={tileKey}
-            className={`${getTileClasses(value)} h-20 w-20 sm:h-24 sm:w-24${
-              isActive ? " tile-pop" : ""
-            }`}
+            key={formatBoardKey(rowIndex, columnIndex)}
+            className={`${getTileClasses(value)} h-20 w-20 sm:h-24 sm:w-24`}
           >
             {value !== 0 ? value : ""}
           </div>
-        );
-      })
-    );
-  }, [board, recentlyChanged]);
+        ))
+      ),
+    [board]
+  );
 
   return (
     <div className="cosmic-page">

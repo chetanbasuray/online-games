@@ -1,5 +1,7 @@
-import GamePlaceholder from "../components/GamePlaceholder";
+"use client";
+
+import Two048Game from "./Two048Game";
 
 export default function Two048Page() {
-  return <GamePlaceholder title="2048" />;
+  return <Two048Game />;
 }

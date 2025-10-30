@@ -1,0 +1,52 @@
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Online Games Nebula Logo</title>
+  <desc id="desc">A cosmic emblem with glowing orbitals surrounding a pixelated controller.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#3dd5ff" stop-opacity="0.6" />
+      <stop offset="45%" stop-color="#1a2a6c" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#070b23" />
+    </radialGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="50%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#f472b6" />
+    </linearGradient>
+    <linearGradient id="pad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1dd8ff" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <circle cx="120" cy="120" r="110" fill="url(#bg)" />
+
+  <g stroke="url(#ring)" stroke-width="10" fill="none" opacity="0.85">
+    <path d="M55 78c32-32 98-32 130 0" stroke-linecap="round" />
+    <path d="M52 150c38 45 98 52 136 0" stroke-linecap="round" />
+    <path d="M78 58c-24 36-24 94 0 130" stroke-linecap="round" />
+    <path d="M162 58c24 36 24 94 0 130" stroke-linecap="round" />
+  </g>
+
+  <g filter="url(#glow)">
+    <rect x="86" y="96" width="68" height="56" rx="18" fill="#0f172a" stroke="#0ea5e9" stroke-width="4" />
+    <g fill="url(#pad)">
+      <rect x="102" y="112" width="12" height="12" rx="2" />
+      <rect x="126" y="112" width="12" height="12" rx="2" />
+      <rect x="102" y="134" width="12" height="12" rx="2" />
+      <rect x="126" y="134" width="12" height="12" rx="2" />
+    </g>
+    <circle cx="94" cy="124" r="6" fill="#fbbf24" />
+    <circle cx="146" cy="124" r="6" fill="#f472b6" />
+  </g>
+
+  <circle cx="56" cy="120" r="10" fill="#22d3ee" opacity="0.8" />
+  <circle cx="184" cy="86" r="8" fill="#f472b6" opacity="0.75" />
+  <circle cx="188" cy="152" r="12" fill="#38bdf8" opacity="0.75" />
+</svg>

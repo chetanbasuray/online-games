@@ -1,5 +1,5 @@
-import GamePlaceholder from "../components/GamePlaceholder";
+import TetrisGame from "./TetrisGame";
 
 export default function TetrisPage() {
-  return <GamePlaceholder title="Tetris" />;
+  return <TetrisGame />;
 }

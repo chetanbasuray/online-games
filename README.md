@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Online Games Arcade
 
-## Getting Started
+A polished Next.js arcade that bundles bite-sized logic games in a neon-inspired interface. Sharpen your mind with daily Wordle challenges and breezy Sudoku boards without leaving the same tab.
 
-First, run the development server:
+## ✨ Features
+
+- **Compact Sudoku board** with glowing feedback for completed rows, columns, and blocks.
+- **Daily Wordle** experience with celebratory animations for correct guesses.
+- **Reactive audiovisuals** powered by Framer Motion, Tone.js, and canvas-confetti for a futuristic vibe.
+- **Responsive layout** that keeps the games playable on phones, tablets, and desktops.
+
+## 🚀 Getting Started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to launch the arcade.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🧩 Available Games
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Game   | Path           | Highlights |
+| ------ | -------------- | ---------- |
+| Wordle | `/`            | Classic five-letter guessing with hints and streak tracking. |
+| Sudoku | `/sudoku`      | Adjustable difficulty, keyboard controls, and celebratory effects when you solve a board. |
 
-## Learn More
+## 🛠️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js](https://nextjs.org/) App Router
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+- [Framer Motion](https://www.framer.com/motion/) for page transitions
+- [Tone.js](https://tonejs.github.io/) and [canvas-confetti](https://www.kirilv.com/canvas-confetti/) for sound and celebration effects
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🤝 Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Fork the repo and create a branch for your feature or bugfix.
+2. Run `npm run lint` to ensure the code follows the project's standards.
+3. Open a pull request describing the changes and screenshots when the UI is affected.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

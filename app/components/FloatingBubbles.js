@@ -22,7 +22,7 @@ export default function FloatingBubbles({ count = 15, area = "full", zIndex = 0 
       {bubbles.map((b) => (
         <motion.div
           key={b.id}
-          className="absolute bg-white rounded-full opacity-20"
+          className="cosmic-particle"
           style={{
             width: `${b.size}vmin`,
             height: `${b.size}vmin`,

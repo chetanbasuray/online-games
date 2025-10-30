@@ -216,17 +216,17 @@ export default function SudokuPage() {
   };
 
   return (
-    <div className="aurora-page">
+    <div className="cosmic-page">
       <FloatingBubbles count={12} area="full" zIndex={1} />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="aurora-panel relative z-10 flex w-full max-w-5xl flex-col items-center gap-8 px-6 py-10 text-center lg:px-12"
+        className="cosmic-panel relative z-10 flex w-full max-w-5xl flex-col items-center gap-8 px-6 py-10 text-center lg:px-12"
       >
         <div className="space-y-3">
-          <h1 className="aurora-heading text-4xl font-bold sm:text-5xl">Sudoku</h1>
+          <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">Sudoku</h1>
           <p className="text-sm uppercase tracking-[0.5em] text-white/60">
             Logic illuminated by neon focus
           </p>
@@ -238,7 +238,7 @@ export default function SudokuPage() {
               key={d}
               type="button"
               onClick={() => setDifficulty(d)}
-              className={`aurora-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.45em] text-white/70 ${
+              className={`cosmic-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.45em] text-white/70 ${
                 difficulty === d ? "bg-white/25 text-white shadow-[0_0_20px_rgba(255,255,255,0.25)]" : ""
               }`}
               aria-pressed={difficulty === d}

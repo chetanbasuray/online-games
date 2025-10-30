@@ -195,7 +195,7 @@ const DirectionButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`aurora-pill px-4 py-3 text-lg font-semibold uppercase tracking-[0.3em] text-white/80 transition ${className}`}
+    className={`cosmic-pill px-4 py-3 text-lg font-semibold uppercase tracking-[0.3em] text-white/80 transition ${className}`}
     aria-label={ariaLabel ?? label}
   >
     {label}
@@ -335,12 +335,12 @@ export default function Two048Game() {
   );
 
   return (
-    <div className="aurora-page">
+    <div className="cosmic-page">
       <FloatingBubbles count={14} area="full" zIndex={1} />
 
-      <div className="aurora-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10">
+      <div className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10">
         <header className="space-y-3">
-          <h1 className="aurora-heading text-4xl font-bold sm:text-5xl">2048</h1>
+          <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">2048</h1>
           <p className="text-sm uppercase tracking-[0.5em] text-white/60">
             Fuse the tiles, chase the light
           </p>
@@ -350,18 +350,18 @@ export default function Two048Game() {
         </header>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
-          <div className="aurora-card px-6 py-4">
+          <div className="cosmic-card px-6 py-4">
             <div className="text-xs uppercase tracking-[0.4em] text-white/60">Score</div>
             <div className="mt-2 text-3xl font-bold text-white">{score}</div>
           </div>
-          <div className="aurora-card px-6 py-4">
+          <div className="cosmic-card px-6 py-4">
             <div className="text-xs uppercase tracking-[0.4em] text-white/60">Best</div>
             <div className="mt-2 text-3xl font-bold text-white">{bestScore}</div>
           </div>
           <button
             type="button"
             onClick={startNewGame}
-            className="aurora-pill px-6 py-3 text-sm font-semibold uppercase tracking-[0.4em] text-white/80"
+            className="cosmic-pill px-6 py-3 text-sm font-semibold uppercase tracking-[0.4em] text-white/80"
           >
             New Game
           </button>
@@ -392,7 +392,7 @@ export default function Two048Game() {
                     <button
                       type="button"
                       onClick={() => setHasWon(false)}
-                      className="aurora-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
+                      className="cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
                     >
                       Keep Playing
                     </button>
@@ -400,7 +400,7 @@ export default function Two048Game() {
                   <button
                     type="button"
                     onClick={startNewGame}
-                    className="aurora-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
+                    className="cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
                   >
                     New Game
                   </button>

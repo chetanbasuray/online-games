@@ -5,7 +5,7 @@ import FloatingBubbles from "./components/FloatingBubbles";
 
 export default function HomePage() {
   return (
-    <div className="aurora-page">
+    <div className="cosmic-page">
       <FloatingBubbles count={9} area="full" zIndex={1} />
 
       <motion.div
@@ -14,10 +14,10 @@ export default function HomePage() {
         transition={{ duration: 0.8 }}
         className="flex max-w-4xl flex-col items-center gap-6 text-center"
       >
-        <span className="aurora-pill px-5 py-2 text-xs uppercase tracking-[0.4em] text-white/70">
+        <span className="cosmic-pill px-5 py-2 text-xs uppercase tracking-[0.4em] text-white/70">
           Play instantly, no installs
         </span>
-        <h1 className="aurora-heading text-5xl font-bold sm:text-6xl">
+        <h1 className="cosmic-heading text-5xl font-bold sm:text-6xl">
           Discover Your Next Favorite Puzzle
         </h1>
         <p className="max-w-2xl text-lg text-white/80 sm:text-xl">
@@ -35,7 +35,7 @@ export default function HomePage() {
           <a
             key={game.path}
             href={game.comingSoon ? "#" : game.path}
-            className={`aurora-card group flex h-full flex-col justify-between ${
+            className={`cosmic-card group flex h-full flex-col justify-between ${
               game.comingSoon ? "cursor-not-allowed opacity-70" : "hover:border-white/40"
             }`}
             title={game.comingSoon ? "Coming Soon" : game.name}
@@ -45,7 +45,7 @@ export default function HomePage() {
                 <h2 className="text-2xl font-semibold text-white">{game.name}</h2>
                 <motion.span
                   whileHover={{ rotate: 12 }}
-                  className="rounded-full border border-white/20 px-3 py-1 text-xs uppercase tracking-widest text-white/70"
+                  className="cosmic-pill px-3 py-1 text-xs uppercase tracking-widest text-white/80"
                 >
                   Play
                 </motion.span>

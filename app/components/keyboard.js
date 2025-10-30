@@ -10,15 +10,15 @@ export default function Keyboard({ onKeyPress, letterStatus = {} }) {
 
   const getKeyColor = (letter) => {
     const status = letterStatus[letter];
-    switch(status) {
+    switch (status) {
       case "correct":
-        return "border border-emerald-200/60 bg-emerald-500/90 text-white shadow-[0_0_16px_rgba(74,222,128,0.35)]";
+        return "cosmic-key--correct";
       case "present":
-        return "border border-amber-200/60 bg-amber-400/90 text-white shadow-[0_0_16px_rgba(250,204,21,0.35)]";
+        return "cosmic-key--present";
       case "absent":
-        return "border border-white/10 bg-slate-800/70 text-white/70";
+        return "cosmic-key--absent";
       default:
-        return "border border-white/10 bg-indigo-950/40 text-white/80 hover:border-white/30";
+        return "";
     }
   };
 
@@ -29,8 +29,9 @@ export default function Keyboard({ onKeyPress, letterStatus = {} }) {
           {row.map((key) => (
             <button
               key={key}
+              type="button"
               onClick={() => onKeyPress(key)}
-              className={`min-w-[2.5rem] rounded-md px-3 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-white transition ${getKeyColor(key)}`}
+              className={`cosmic-key ${getKeyColor(key)}`}
             >
               {key}
             </button>

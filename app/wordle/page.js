@@ -129,20 +129,20 @@ export default function WordlePage() {
   };
 
   return (
-    <div className="aurora-page">
+    <div className="cosmic-page">
       <FloatingBubbles count={10} area="full" zIndex={1} />
 
       <motion.div
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="aurora-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12"
+        className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12"
       >
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="aurora-heading text-4xl font-bold"
+          className="cosmic-heading text-4xl font-bold"
         >
           Wordle
         </motion.h1>
@@ -199,20 +199,20 @@ export default function WordlePage() {
         >
           <button
             onClick={submitGuess}
-            className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+            className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
           >
             Enter
           </button>
           <button
             onClick={removeLetter}
-            className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+            className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
           >
             Backspace
           </button>
           {isWin && (
             <button
               onClick={startNewGame}
-              className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+              className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
             >
               New Game
             </button>

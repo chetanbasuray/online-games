@@ -1,6 +1,4 @@
-import dynamic from "next/dynamic";
-
-const Two048Game = dynamic(() => import("./Two048Game"), { ssr: false });
+import Two048Game from "./Two048Game";
 
 export default function Two048Page() {
   return <Two048Game />;

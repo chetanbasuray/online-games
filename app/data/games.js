@@ -22,7 +22,7 @@ export const GAMES = [
   {
     name: "Tetris",
     path: "/tetris",
-    comingSoon: true,
+    badge: "New",
     description: "Rotate, drop, and stack neon tetrominoes in a fast-paced challenge.",
   },
 ];

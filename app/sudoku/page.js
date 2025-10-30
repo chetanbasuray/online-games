@@ -223,23 +223,25 @@ export default function SudokuPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="cosmic-panel relative z-10 flex w-full max-w-5xl flex-col items-center gap-8 px-6 py-10 text-center lg:px-12"
+        className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8"
       >
-        <div className="space-y-3">
-          <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">Sudoku</h1>
-          <p className="text-sm uppercase tracking-[0.5em] text-white/60">
-            Logic illuminated by neon focus
+        <div className="space-y-2">
+          <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Sudoku</h1>
+          <p className="text-xs uppercase tracking-[0.5em] text-white/60">
+            Sleek logic for focused play
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
           {["easy", "medium", "hard", "evil"].map((d) => (
             <button
               key={d}
               type="button"
               onClick={() => setDifficulty(d)}
-              className={`cosmic-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.45em] text-white/70 ${
-                difficulty === d ? "bg-white/25 text-white shadow-[0_0_20px_rgba(255,255,255,0.25)]" : ""
+              className={`cosmic-pill px-4 py-1.5 font-semibold uppercase tracking-[0.4em] text-white/70 transition-all ${
+                difficulty === d
+                  ? "bg-white/25 text-white shadow-[0_0_18px_rgba(255,255,255,0.22)]"
+                  : "hover:bg-white/10"
               }`}
               aria-pressed={difficulty === d}
             >
@@ -248,8 +250,8 @@ export default function SudokuPage() {
           ))}
         </div>
 
-        <div className="w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-950/40 p-3 shadow-inner shadow-indigo-500/20 sm:p-6">
-          <div className="grid grid-cols-9 gap-[0.35rem] sm:gap-2">
+        <div className="w-full rounded-2xl border border-white/10 bg-slate-950/50 p-3 shadow-inner shadow-indigo-500/10 sm:p-4">
+          <div className="grid grid-cols-9 gap-1 sm:gap-1.5">
             {userBoard.map((row, r) =>
               row.map((num, c) => {
                 const isGiven = puzzle[r][c] !== 0;
@@ -263,7 +265,7 @@ export default function SudokuPage() {
                     data-cell={`${r}-${c}`}
                     value={num || ""}
                     readOnly={isGiven}
-                    className={`${glow} flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-center text-lg font-semibold text-white shadow-[0_8px_20px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_22px_rgba(168,85,247,0.35)] sm:h-14 sm:w-14 sm:text-xl`}
+                    className={`${glow} flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-center text-base font-semibold text-white shadow-[0_6px_16px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_18px_rgba(168,85,247,0.32)] sm:h-12 sm:w-12 sm:text-lg`}
                     style={{
                       background: blockColor,
                       color: isGiven ? "rgba(248, 250, 252, 0.85)" : "#fdf4ff",
@@ -281,7 +283,7 @@ export default function SudokuPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-base font-semibold text-white/80"
+            className="text-sm font-semibold text-white/80"
           >
             {message}
           </motion.p>

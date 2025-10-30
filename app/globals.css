@@ -22,12 +22,143 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Poppins", var(--font-sans), system-ui;
+}
+
+.aurora-body {
+  min-height: 100vh;
+  color: #f6f5ff;
+  font-family: "Poppins", var(--font-sans), system-ui;
+  background: radial-gradient(circle at 20% 20%, rgba(114, 137, 218, 0.18), transparent 60%),
+    radial-gradient(circle at 80% 10%, rgba(255, 105, 180, 0.25), transparent 55%),
+    radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.25), transparent 60%),
+    #050412;
+}
+
+.aurora-background {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  filter: blur(60px);
+  opacity: 0.45;
+  animation: drift infinite alternate ease-in-out;
+}
+
+.aurora-blob-1 {
+  top: -20vh;
+  left: -10vw;
+}
+
+.aurora-blob-2 {
+  top: 10vh;
+  right: -15vw;
+}
+
+.aurora-blob-3 {
+  bottom: -25vh;
+  left: -12vw;
+}
+
+.aurora-blob-4 {
+  bottom: -20vh;
+  right: -10vw;
+}
+
+.aurora-blob-5 {
+  top: 35vh;
+  left: 30vw;
+}
+
+.aurora-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px;
+  mask-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), transparent 70%);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-3%, -4%, 0) scale(1.05);
+  }
+  to {
+    transform: translate3d(3%, 4%, 0) scale(0.95);
+  }
+}
+
+.aurora-page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 7rem);
+}
+
+.aurora-panel {
+  background: linear-gradient(135deg, rgba(15, 12, 45, 0.85), rgba(48, 15, 80, 0.75));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(15, 6, 45, 0.45);
+  border-radius: 24px;
+  backdrop-filter: blur(28px);
+}
+
+.aurora-card {
+  background: linear-gradient(145deg, rgba(10, 18, 55, 0.85), rgba(35, 10, 65, 0.7));
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(10, 5, 40, 0.35);
+  padding: 1.75rem;
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+}
+
+.aurora-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 22px 60px rgba(120, 74, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.aurora-pill {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: background 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+
+.aurora-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  transform: translateY(-2px);
+}
+
+.aurora-heading {
+  background: linear-gradient(90deg, #fdfcff 0%, #f1c6ff 40%, #9ae5ff 90%);
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .tile {
   transform-style: preserve-3d;
   transition: transform 0.5s;
+}
+
+.glow-correct {
+  box-shadow: 0 0 18px rgba(74, 222, 128, 0.55);
+}
+
+.glow-present {
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.55);
 }
 
 @keyframes shake {

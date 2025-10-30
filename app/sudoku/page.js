@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import FloatingBubbles from "../components/FloatingBubbles";
 import * as Tone from "tone";
 import confetti from "canvas-confetti";
 
@@ -65,9 +66,9 @@ const removeNumbers = (board, difficulty) => {
 
 // Color palette
 const blockColors = [
-  ["#FFD7BA", "#FFE9BA", "#D3FFC9"],
-  ["#BAF0FF", "#BABDFF", "#E9BAFF"],
-  ["#FFC8DE", "#FFF2BA", "#BAFFD6"],
+  ["rgba(129, 140, 248, 0.28)", "rgba(244, 114, 182, 0.28)", "rgba(45, 212, 191, 0.28)"],
+  ["rgba(244, 63, 94, 0.28)", "rgba(14, 165, 233, 0.28)", "rgba(250, 204, 21, 0.28)"],
+  ["rgba(168, 85, 247, 0.28)", "rgba(56, 189, 248, 0.28)", "rgba(248, 113, 113, 0.28)"],
 ];
 
 export default function SudokuPage() {
@@ -215,59 +216,77 @@ export default function SudokuPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
-      {/* Bubbles */}
-      {Array.from({ length: 15 }).map((_, i) => (
-        <motion.div key={i} className="absolute bg-white rounded-full opacity-30 pointer-events-none"
-          style={{
-            width: `${4 + Math.random() * 8}vmin`,
-            height: `${4 + Math.random() * 8}vmin`,
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-          }}
-          animate={{ y: ["0%", "-20%", "0%"], x: ["0%", "5%", "0%"] }}
-          transition={{ duration: 3 + Math.random() * 5, repeat: Infinity, ease: "easeInOut" }}
-        />
-      ))}
+    <div className="aurora-page">
+      <FloatingBubbles count={12} area="full" zIndex={1} />
 
-      <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Sudoku</h1>
-      <div className="flex gap-4 mb-4">
-        {["easy","medium","hard","evil"].map(d => (
-          <button key={d} onClick={()=>setDifficulty(d)}
-            className={`px-4 py-2 font-bold rounded ${difficulty===d?"bg-white text-purple-700":"bg-purple-200 text-white"}`}>
-            {d.toUpperCase()}
-          </button>
-        ))}
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="aurora-panel relative z-10 flex w-full max-w-5xl flex-col items-center gap-8 px-6 py-10 text-center lg:px-12"
+      >
+        <div className="space-y-3">
+          <h1 className="aurora-heading text-4xl font-bold sm:text-5xl">Sudoku</h1>
+          <p className="text-sm uppercase tracking-[0.5em] text-white/60">
+            Logic illuminated by neon focus
+          </p>
+        </div>
 
-      {/* Sudoku Board */}
-      <div className="grid grid-cols-9 gap-1 bg-white rounded-lg p-2">
-        {userBoard.map((row,r) =>
-          row.map((num,c)=>{
-            const isGiven = puzzle[r][c] !== 0;
-            const blockColor = getBlockColor(r,c);
-            const glow = getCellGlowStyle(r,c);
-            return (
-              <input key={`${r}-${c}`}
-                type="text"
-                maxLength={1}
-                data-cell={`${r}-${c}`}
-                value={num || ""}
-                readOnly={isGiven}
-                className={`${glow} text-center text-lg sm:text-xl w-12 h-12 sm:w-14 sm:h-14 rounded-md focus:outline-none`}
-                style={{ 
-                backgroundColor: blockColor, 
-                color: isGiven ? "black" : "#2563EB", 
-                fontWeight: isGiven ? "normal" : "bold" 
-              }}
-              />
-            );
-          })
+        <div className="flex flex-wrap justify-center gap-3">
+          {["easy", "medium", "hard", "evil"].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDifficulty(d)}
+              className={`aurora-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.45em] text-white/70 ${
+                difficulty === d ? "bg-white/25 text-white shadow-[0_0_20px_rgba(255,255,255,0.25)]" : ""
+              }`}
+              aria-pressed={difficulty === d}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-950/40 p-3 shadow-inner shadow-indigo-500/20 sm:p-6">
+          <div className="grid grid-cols-9 gap-[0.35rem] sm:gap-2">
+            {userBoard.map((row, r) =>
+              row.map((num, c) => {
+                const isGiven = puzzle[r][c] !== 0;
+                const blockColor = getBlockColor(r, c);
+                const glow = getCellGlowStyle(r, c);
+                return (
+                  <input
+                    key={`${r}-${c}`}
+                    type="text"
+                    maxLength={1}
+                    data-cell={`${r}-${c}`}
+                    value={num || ""}
+                    readOnly={isGiven}
+                    className={`${glow} flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-center text-lg font-semibold text-white shadow-[0_8px_20px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_22px_rgba(168,85,247,0.35)] sm:h-14 sm:w-14 sm:text-xl`}
+                    style={{
+                      background: blockColor,
+                      color: isGiven ? "rgba(248, 250, 252, 0.85)" : "#fdf4ff",
+                      fontWeight: isGiven ? "600" : "700",
+                    }}
+                  />
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {message && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-base font-semibold text-white/80"
+          >
+            {message}
+          </motion.p>
         )}
-      </div>
-
-      {message && <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.5}}
-        className="mt-4 text-white font-bold text-lg">{message}</motion.p>}
+      </motion.div>
     </div>
   );
 }

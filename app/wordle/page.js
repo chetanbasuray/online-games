@@ -1,42 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import FloatingBubbles from "../components/FloatingBubbles";
 import Keyboard from "../components/keyboard";
 import { WORDS } from "./words";
 
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
-
-const FloatingBubbles = ({ count = 15 }) => {
-  const [bubbles, setBubbles] = useState([]);
-
-  useEffect(() => {
-    const arr = Array.from({ length: count }, (_, i) => ({
-      id: i,
-      size: 4 + Math.random() * 8,
-      top: Math.random() * 100,
-      left: Math.random() * 100,
-      duration: 3 + Math.random() * 5,
-      delay: Math.random() * 5,
-    }));
-    setBubbles(arr);
-  }, [count]);
-
-  return bubbles.map((b) => (
-    <motion.div
-      key={b.id}
-      className="absolute bg-white rounded-full opacity-30 pointer-events-none"
-      style={{
-        width: `${b.size}vmin`,
-        height: `${b.size}vmin`,
-        top: `${b.top}%`,
-        left: `${b.left}%`,
-      }}
-      animate={{ y: ["0%", "-20%", "0%"], x: ["0%", "5%", "0%"] }}
-      transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: "easeInOut" }}
-    />
-  ));
-};
 
 export default function WordlePage() {
   const [solution, setSolution] = useState("");
@@ -102,12 +72,15 @@ export default function WordlePage() {
   };
 
   const getTileColor = (letter, index, guess) => {
-    if (!guess) return "bg-white border-gray-400 text-black";
+    if (!guess) return "bg-slate-900/60 border border-white/10 text-white/80";
     const colors = getGuessColors(guess, solution);
     switch (colors[index]) {
-      case "correct": return "bg-green-600 text-white border-green-700 glow-correct";
-      case "present": return "bg-yellow-400 text-white border-yellow-500 glow-present";
-      default: return "bg-gray-400 text-white border-gray-500";
+      case "correct":
+        return "bg-emerald-500/90 text-white border border-emerald-200/60 glow-correct";
+      case "present":
+        return "bg-amber-400/90 text-white border border-amber-200/60 glow-present";
+      default:
+        return "bg-slate-700/70 text-white/70 border border-white/10";
     }
   };
 
@@ -156,55 +129,55 @@ export default function WordlePage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      {/* floating bubbles */}
-      <FloatingBubbles count={15} />
+    <div className="aurora-page">
+      <FloatingBubbles count={10} area="full" zIndex={1} />
 
-      {/* main container */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 flex flex-col items-center justify-center gap-6"
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="aurora-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12"
       >
-        {/* title */}
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-4xl font-bold text-white mb-2"
+          className="aurora-heading text-4xl font-bold"
         >
           Wordle
         </motion.h1>
 
-        {/* grid */}
+        <p className="text-center text-sm uppercase tracking-[0.6em] text-white/60">
+          Decode the daily word in six stellar guesses
+        </p>
+
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="grid grid-rows-6 gap-2"
+          className="grid grid-rows-6 gap-3"
         >
           {Array.from({ length: MAX_GUESSES }).map((_, row) => {
             const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
             const isCurrentRow = row === guesses.length;
             return (
-              <div key={row} className="flex gap-2 justify-center flex-wrap grid-row">
+              <div key={row} className="grid-row flex flex-wrap justify-center gap-3">
                 {Array.from({ length: WORD_LENGTH }).map((_, col) => {
                   const letter = guess[col] || "";
                   const bgColor =
                     !isCurrentRow && guess
                       ? getTileColor(letter, col, guess)
-                      : "bg-white border-gray-400 text-black";
+                      : "bg-slate-900/60 border border-white/10 text-white/80";
                   const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
 
                   return (
                     <motion.div
                       key={col}
-                      className={`w-14 h-14 sm:w-12 sm:h-12 flex items-center justify-center text-2xl font-bold rounded border tile ${
+                      className={`tile flex h-14 w-14 items-center justify-center rounded-lg text-2xl font-bold sm:h-12 sm:w-12 ${bgColor} ${
                         flipped ? "flipped" : ""
-                      } ${bgColor}`}
+                      }`}
                       style={{ transitionDelay: `${col * 300}ms` }}
-                      animate={!isCurrentRow && guess ? { scale: [1, 1.1, 1] } : {}}
+                      animate={!isCurrentRow && guess ? { scale: [1, 1.05, 1] } : {}}
                       transition={{ duration: 0.3 }}
                     >
                       {letter}
@@ -216,46 +189,47 @@ export default function WordlePage() {
           })}
         </motion.div>
 
-        {/* keyboard */}
         <Keyboard guessedLetters={Object.keys(letterStatus)} onKeyPress={addLetter} letterStatus={letterStatus} />
 
-        {/* buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-4 flex gap-2"
+          className="flex flex-wrap justify-center gap-3"
         >
-          <button onClick={submitGuess} className="px-4 py-2 sm:px-3 sm:py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">Enter</button>
-          <button onClick={removeLetter} className="px-4 py-2 sm:px-3 sm:py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition">Backspace</button>
-          {isWin && <button onClick={startNewGame} className="px-4 py-2 sm:px-3 sm:py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">New Game</button>}
+          <button
+            onClick={submitGuess}
+            className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+          >
+            Enter
+          </button>
+          <button
+            onClick={removeLetter}
+            className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+          >
+            Backspace
+          </button>
+          {isWin && (
+            <button
+              onClick={startNewGame}
+              className="aurora-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+            >
+              New Game
+            </button>
+          )}
         </motion.div>
 
-        {/* message */}
         {message && (
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mt-6 text-lg font-semibold text-white"
+            className="text-base font-semibold text-white/80"
           >
             {message}
           </motion.p>
         )}
       </motion.div>
-
-      <style jsx>{`
-        .glow-correct { box-shadow: 0 0 10px 3px rgba(34,197,94,0.7); }
-        .glow-present { box-shadow: 0 0 10px 3px rgba(234,179,8,0.7); }
-        .shake { animation: shake 0.5s; }
-        @keyframes shake {
-          0% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          50% { transform: translateX(5px); }
-          75% { transform: translateX(-5px); }
-          100% { transform: translateX(0); }
-        }
-      `}</style>
     </div>
   );
 }

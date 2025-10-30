@@ -3,24 +3,21 @@ import { motion } from "framer-motion";
 
 export default function GamePlaceholder({ title }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-6">
-      <motion.h1
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="text-6xl font-bold text-white mb-6 text-center"
+    <div className="aurora-page">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7 }}
+        className="aurora-panel flex max-w-3xl flex-col items-center gap-6 px-10 py-14 text-center"
       >
-        {title}
-      </motion.h1>
-
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
-        className="text-xl text-white/80 text-center max-w-lg"
-      >
-        Coming soon! This game will be playable directly in your browser soon. Stay tuned!
-      </motion.p>
+        <h1 className="aurora-heading text-5xl font-bold">{title}</h1>
+        <p className="text-lg text-white/75">
+          We&rsquo;re giving this classic the same cosmic glow-up as the rest of the arcade. Check back soon for its grand entrance.
+        </p>
+        <span className="aurora-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
+          In development
+        </span>
+      </motion.div>
     </div>
   );
 }

@@ -202,7 +202,7 @@ const DirectionButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 ${className}`}
+    className={`rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700 ${className}`}
     aria-label={ariaLabel ?? label}
   >
     {label}
@@ -342,12 +342,12 @@ export default function Two048Game() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900">
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
         <div className="w-full max-w-3xl space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1 text-left">
                 <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">2048</h1>
@@ -356,11 +356,11 @@ export default function Two048Game() {
                 </p>
               </div>
               <div className="flex flex-wrap justify-end gap-3 text-center">
-                <div className="min-w-[120px] rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="min-w-[120px] rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
                   <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Score</p>
                   <p className="text-2xl font-semibold text-slate-900">{score.toLocaleString()}</p>
                 </div>
-                <div className="min-w-[120px] rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="min-w-[120px] rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
                   <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Best</p>
                   <p className="text-2xl font-semibold text-slate-900">{bestScore.toLocaleString()}</p>
                 </div>
@@ -370,33 +370,33 @@ export default function Two048Game() {
               <button
                 type="button"
                 onClick={startNewGame}
-                className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 transition hover:border-emerald-400 hover:text-emerald-700"
+                className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
               >
                 New Game
               </button>
               {hasWon && (
-                <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-600">
+                <span className="inline-flex items-center rounded-full border border-transparent bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm">
                   Keep pushing!
                 </span>
               )}
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col items-center gap-6">
               <div
                 className="relative"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
-                <div className="rounded-3xl bg-[#bbada0] p-4 shadow-inner">
+                <div className="rounded-3xl bg-gradient-to-br from-[#cdc1b4] via-[#d8cbbd] to-[#ece0d1] p-4 shadow-inner">
                   <div className="grid grid-cols-4 gap-3">
                     {boardTiles}
                   </div>
                 </div>
 
                 {(hasWon || isGameOver) && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-white/85 p-6 text-center">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-white/95 via-sky-50/80 to-emerald-50/60 p-6 text-center shadow-inner">
                     <p className="text-2xl font-semibold text-slate-900">
                       {hasWon ? "You made it to 2048!" : "No more moves"}
                     </p>
@@ -410,7 +410,7 @@ export default function Two048Game() {
                         <button
                           type="button"
                           onClick={() => setHasWon(false)}
-                          className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+                          className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
                         >
                           Keep Playing
                         </button>
@@ -418,7 +418,7 @@ export default function Two048Game() {
                       <button
                         type="button"
                         onClick={startNewGame}
-                        className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 transition hover:border-emerald-400 hover:text-emerald-700"
+                        className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
                       >
                         New Game
                       </button>

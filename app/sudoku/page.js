@@ -305,7 +305,7 @@ export default function SudokuPage() {
 
   const getCellGlowStyle = (r, c) => {
     const key = `${r}-${c}`;
-    if (tempGlow[key]) return "bg-amber-100 transition-colors duration-500";
+    if (tempGlow[key]) return "bg-amber-100/70 transition-colors duration-500";
     return "";
   };
 
@@ -320,9 +320,9 @@ export default function SudokuPage() {
 
   const getCellClassName = (r, c, isGiven, isActive) => {
     const baseClasses = [
-      "flex h-10 w-10 items-center justify-center border border-slate-300 text-center text-base font-semibold sm:h-12 sm:w-12 sm:text-lg",
-      "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white",
-      isGiven ? "bg-slate-100 text-slate-900" : "bg-white text-blue-600",
+      "flex h-10 w-10 items-center justify-center border border-slate-300/70 text-center text-base font-semibold sm:h-12 sm:w-12 sm:text-lg",
+      "focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-white",
+      isGiven ? "bg-slate-50 text-slate-900" : "bg-white text-blue-700",
       getCellGlowStyle(r, c),
       getBorderClasses(r, c),
     ];
@@ -335,12 +335,12 @@ export default function SudokuPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900">
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
         <div className="w-full max-w-3xl space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
                 <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Sudoku</h1>
@@ -354,10 +354,10 @@ export default function SudokuPage() {
                     key={d}
                     type="button"
                     onClick={() => setDifficulty(d)}
-                    className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors shadow-sm ${
                       difficulty === d
-                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                        : "border-slate-300 bg-white text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                        ? "border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 text-blue-800"
+                        : "border-slate-300/80 bg-white/80 text-slate-600 hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
                     }`}
                     aria-pressed={difficulty === d}
                   >
@@ -368,7 +368,7 @@ export default function SudokuPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-6">
             <div className="mx-auto w-fit">
               <div className="grid grid-cols-9">
                 {userBoard.map((row, r) =>
@@ -401,7 +401,7 @@ export default function SudokuPage() {
                   key={num}
                   type="button"
                   onClick={() => handlePadInput(num)}
-                  className="h-10 min-w-[2.75rem] rounded-md border border-slate-300 bg-slate-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="h-10 min-w-[2.75rem] rounded-md border border-slate-300/70 bg-gradient-to-r from-white via-blue-50 to-sky-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={!activeCell}
                   aria-disabled={!activeCell}
                 >
@@ -411,7 +411,7 @@ export default function SudokuPage() {
               <button
                 type="button"
                 onClick={() => handlePadInput(0)}
-                className="h-10 min-w-[2.75rem] rounded-md border border-slate-300 bg-slate-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                className="h-10 min-w-[2.75rem] rounded-md border border-slate-300/70 bg-gradient-to-r from-white via-rose-50 to-amber-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={!activeCell}
                 aria-disabled={!activeCell}
               >

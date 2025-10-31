@@ -8,15 +8,15 @@ export default function HomePage() {
   const showSupportWidget = hasPlayableGame();
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900">
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-12">
         <div className="w-full max-w-3xl space-y-4 text-center">
-          <span className="inline-flex rounded-full border border-slate-300 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">
+          <span className="inline-flex rounded-full border border-slate-200/80 bg-gradient-to-r from-blue-100/80 via-white to-rose-100/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm">
             Play instantly, no installs
           </span>
-          <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
+          <h1 className="bg-gradient-to-r from-slate-900 via-blue-700 to-rose-700 bg-clip-text text-4xl font-semibold text-transparent sm:text-5xl">
             Classic games with the familiar look you love
           </h1>
           <p className="text-base text-slate-600 sm:text-lg">
@@ -28,10 +28,10 @@ export default function HomePage() {
           {GAMES.map((game) => {
             const isDisabled = !game.isPlayable;
             const cardClasses = [
-              "group flex h-full flex-col justify-between rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition",
+              "group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50 to-rose-50 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition",
               isDisabled
-                ? "cursor-not-allowed opacity-60"
-                : "hover:border-blue-400 hover:shadow-md",
+                ? "cursor-not-allowed opacity-70"
+                : "hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_24px_55px_rgba(15,23,42,0.12)]",
             ]
               .filter(Boolean)
               .join(" ");
@@ -43,13 +43,13 @@ export default function HomePage() {
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl font-semibold text-slate-900">{game.name}</h2>
                       {game.badge && (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-blue-700">
+                        <span className="rounded-full bg-gradient-to-r from-blue-100 to-blue-200 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-blue-800 shadow-sm">
                           {game.badge}
                         </span>
                       )}
                     </div>
                     {!isDisabled && (
-                      <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-blue-700 transition group-hover:border-blue-400 group-hover:text-blue-800">
+                      <span className="inline-flex rounded-full border border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-blue-800 shadow-sm transition group-hover:brightness-110">
                         Play
                       </span>
                     )}
@@ -59,7 +59,7 @@ export default function HomePage() {
                   </p>
                 </div>
                 {isDisabled && (
-                  <span className="mt-6 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-amber-600">
+                  <span className="mt-6 inline-flex rounded-full border border-transparent bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm">
                     Coming Soon
                   </span>
                 )}

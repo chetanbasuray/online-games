@@ -596,11 +596,11 @@ export default function TetrisGame() {
   const dropSpeedSeconds = (dropInterval / 1000).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900">
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
         <div className="w-full max-w-3xl space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
                 <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Tetris</h1>
@@ -609,26 +609,26 @@ export default function TetrisGame() {
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
-                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
                   <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Score</p>
                   <p className="text-xl font-semibold text-slate-900">{score.toLocaleString()}</p>
                 </div>
-                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
                   <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Level</p>
                   <p className="text-xl font-semibold text-slate-900">{level}</p>
                 </div>
-                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
                   <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Lines</p>
                   <p className="text-xl font-semibold text-slate-900">{linesCleared}</p>
                 </div>
               </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 text-center shadow-sm">
                 <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Status</p>
                 <p className="text-sm font-semibold text-slate-900">{gameStatus}</p>
               </div>
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 text-center shadow-sm">
                 <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Drop Speed</p>
                 <p className="text-sm font-semibold text-slate-900">{dropSpeedSeconds}s</p>
               </div>
@@ -637,17 +637,17 @@ export default function TetrisGame() {
               <button
                 type="button"
                 onClick={resetGame}
-                className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 transition hover:border-emerald-400 hover:text-emerald-700"
+                className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
               >
                 Restart
               </button>
               <button
                 type="button"
                 onClick={togglePause}
-                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
+                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] shadow-sm transition ${
                   isPaused
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-600 hover:border-emerald-400 hover:text-emerald-700"
-                    : "border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-400 hover:text-blue-800"
+                    ? "border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 text-emerald-700 hover:brightness-110"
+                    : "border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 text-blue-800 hover:brightness-110"
                 }`}
               >
                 {isPaused ? "Resume" : "Pause"}
@@ -655,27 +655,27 @@ export default function TetrisGame() {
               <button
                 type="button"
                 onClick={hardDrop}
-                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 transition hover:border-slate-400 hover:text-slate-700"
+                className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
               >
                 Hard Drop
               </button>
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="order-2 w-full max-w-sm space-y-4 lg:order-1">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="rounded-lg border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-4 shadow-sm">
                   <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Next Piece</h2>
-                  <div className="mt-3 inline-block rounded-lg border border-slate-200 bg-white px-3 py-3">
+                  <div className="mt-3 inline-block rounded-lg border border-slate-200/70 bg-white/80 px-3 py-3 shadow-sm">
                     <div className="grid grid-cols-4 gap-1">
                       {previewGrid.map((row, rowIndex) =>
                         row.map((isFilled, columnIndex) => {
                           const previewKey = `${rowIndex}-${columnIndex}`;
                           const previewClasses =
                             isFilled && nextPiece
-                              ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm`
-                              : "h-4 w-4 rounded-sm border border-slate-200 bg-slate-100";
+                              ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm shadow-sm`
+                              : "h-4 w-4 rounded-sm border border-slate-200/70 bg-gradient-to-br from-white via-blue-50 to-white";
                           return <div key={previewKey} className={previewClasses} aria-hidden />;
                         }),
                       )}
@@ -683,7 +683,7 @@ export default function TetrisGame() {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="rounded-lg border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-4 shadow-sm">
                   <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Controls</h2>
                   <ul className="mt-3 space-y-2 text-sm text-slate-600">
                     <li>
@@ -706,7 +706,7 @@ export default function TetrisGame() {
               </div>
 
               <div className="order-1 flex justify-center lg:order-2 lg:flex-1">
-                <div className="relative rounded-2xl border border-slate-200 bg-slate-100 p-3 shadow-inner">
+                <div className="relative rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-3 shadow-inner">
                   <div className="grid grid-cols-10 gap-1 sm:gap-[6px]">
                     {board.map((row, rowIndex) =>
                       row.map((cell, columnIndex) =>
@@ -715,7 +715,7 @@ export default function TetrisGame() {
                     )}
                   </div>
                   {isGameOver ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-white/85 p-6 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-white/95 via-rose-50/70 to-amber-50/70 p-6 text-center shadow-inner">
                       <p className="text-2xl font-semibold text-slate-900">Game Over</p>
                       <p className="mt-2 text-sm text-slate-600">Press restart to play again.</p>
                     </div>

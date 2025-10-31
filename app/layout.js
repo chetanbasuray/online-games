@@ -13,7 +13,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-100 font-sans text-slate-900">
+      <body className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-rose-50 font-sans text-slate-900 antialiased">
         <div className="flex min-h-screen flex-col">
           <NavBar />
           <main className="flex-1">{children}</main>

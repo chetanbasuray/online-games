@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
+import GameFooter from "../components/GameFooter";
+import SupportWidget from "../components/SupportWidget";
+import { isGamePlayable } from "../utils/gameAvailability";
 import * as Tone from "tone";
 import confetti from "canvas-confetti";
 
@@ -70,6 +73,7 @@ const blockColors = [
   ["rgba(244, 63, 94, 0.28)", "rgba(14, 165, 233, 0.28)", "rgba(250, 204, 21, 0.28)"],
   ["rgba(168, 85, 247, 0.28)", "rgba(56, 189, 248, 0.28)", "rgba(248, 113, 113, 0.28)"],
 ];
+const showSupportWidget = isGamePlayable("/sudoku");
 
 export default function SudokuPage() {
   const [solution, setSolution] = useState([]);
@@ -218,19 +222,21 @@ export default function SudokuPage() {
   return (
     <div className="cosmic-page">
       <FloatingBubbles count={12} area="full" zIndex={1} />
+      {showSupportWidget && <SupportWidget />}
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8"
-      >
-        <div className="space-y-2">
-          <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Sudoku</h1>
-          <p className="text-xs uppercase tracking-[0.5em] text-white/60">
-            Sleek logic for focused play
-          </p>
-        </div>
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="cosmic-panel flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8 lg:max-w-3xl"
+        >
+          <div className="space-y-2">
+            <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Sudoku</h1>
+            <p className="text-xs uppercase tracking-[0.5em] text-white/60">
+              Sleek logic for focused play
+            </p>
+          </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
           {["easy", "medium", "hard", "evil"].map((d) => (
@@ -278,17 +284,27 @@ export default function SudokuPage() {
           </div>
         </div>
 
-        {message && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-sm font-semibold text-white/80"
-          >
-            {message}
-          </motion.p>
-        )}
-      </motion.div>
+          {message && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-sm font-semibold text-white/80"
+            >
+              {message}
+            </motion.p>
+          )}
+        </motion.div>
+        <GameFooter
+          gameName="Sudoku"
+          creator="Howard Garns, with modern popularity driven by Nikoli"
+          moreInfo={{
+            url: "https://en.wikipedia.org/wiki/Sudoku",
+            label: "the Sudoku article on Wikipedia",
+          }}
+          className="w-full max-w-md lg:max-w-xs lg:self-start"
+        />
+      </div>
     </div>
   );
 }

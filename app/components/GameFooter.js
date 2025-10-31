@@ -6,8 +6,8 @@ export default function GameFooter({ gameName, creator, moreInfo }) {
   }
 
   return (
-    <footer className="relative z-10 mt-10 flex w-full max-w-4xl flex-col items-center text-center">
-      <div className="cosmic-card w-full max-w-3xl space-y-3 px-6 py-5">
+    <footer className="relative z-10 mt-10 flex w-full max-w-4xl flex-col items-center text-center sm:mx-auto sm:w-auto">
+      <div className="cosmic-card w-full max-w-3xl space-y-3 px-6 py-5 sm:mx-auto sm:w-auto">
         <p className="text-xs font-semibold uppercase tracking-[0.45em] text-white/60">
           {gameName} Origins
         </p>

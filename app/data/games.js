@@ -28,6 +28,6 @@ export const GAMES = [
     path: "/tetris",
     isPlayable: true,
     badge: "New",
-    description: "Rotate, drop, and stack neon tetrominoes in a fast-paced challenge.",
+    description: "Rotate, drop, and stack colorful tetrominoes in a fast-paced challenge.",
   },
 ];

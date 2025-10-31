@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import FloatingBubbles from "../components/FloatingBubbles";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
@@ -19,9 +18,8 @@ const createInitialPosition = () => ({
 
 const TETROMINOES = {
   I: {
-    style:
-      "bg-cyan-400/80 border border-cyan-200/70 shadow-[0_0_18px_rgba(34,211,238,0.45)]",
-    preview: "bg-cyan-300/70",
+    style: "bg-cyan-400 border border-cyan-500 text-white shadow-sm",
+    preview: "bg-cyan-300",
     rotations: [
       [
         { x: 0, y: 1 },
@@ -38,9 +36,8 @@ const TETROMINOES = {
     ],
   },
   J: {
-    style:
-      "bg-indigo-400/80 border border-indigo-200/70 shadow-[0_0_18px_rgba(99,102,241,0.45)]",
-    preview: "bg-indigo-300/70",
+    style: "bg-blue-500 border border-blue-600 text-white shadow-sm",
+    preview: "bg-blue-300",
     rotations: [
       [
         { x: 0, y: 0 },
@@ -69,9 +66,8 @@ const TETROMINOES = {
     ],
   },
   L: {
-    style:
-      "bg-amber-400/80 border border-amber-200/70 shadow-[0_0_18px_rgba(251,191,36,0.45)]",
-    preview: "bg-amber-300/70",
+    style: "bg-orange-400 border border-orange-500 text-white shadow-sm",
+    preview: "bg-orange-300",
     rotations: [
       [
         { x: 2, y: 0 },
@@ -100,9 +96,8 @@ const TETROMINOES = {
     ],
   },
   O: {
-    style:
-      "bg-yellow-300/90 border border-yellow-100/80 shadow-[0_0_18px_rgba(250,204,21,0.45)] text-slate-900",
-    preview: "bg-yellow-200/80",
+    style: "bg-yellow-300 border border-yellow-400 text-slate-900 shadow-sm",
+    preview: "bg-yellow-200",
     rotations: [
       [
         { x: 1, y: 0 },
@@ -113,9 +108,8 @@ const TETROMINOES = {
     ],
   },
   S: {
-    style:
-      "bg-emerald-400/80 border border-emerald-200/70 shadow-[0_0_18px_rgba(16,185,129,0.45)]",
-    preview: "bg-emerald-300/70",
+    style: "bg-emerald-500 border border-emerald-600 text-white shadow-sm",
+    preview: "bg-emerald-300",
     rotations: [
       [
         { x: 1, y: 0 },
@@ -132,9 +126,8 @@ const TETROMINOES = {
     ],
   },
   T: {
-    style:
-      "bg-fuchsia-400/80 border border-fuchsia-200/70 shadow-[0_0_18px_rgba(217,70,239,0.45)]",
-    preview: "bg-fuchsia-300/70",
+    style: "bg-purple-500 border border-purple-600 text-white shadow-sm",
+    preview: "bg-purple-300",
     rotations: [
       [
         { x: 1, y: 0 },
@@ -163,9 +156,8 @@ const TETROMINOES = {
     ],
   },
   Z: {
-    style:
-      "bg-rose-400/80 border border-rose-200/70 shadow-[0_0_18px_rgba(244,63,94,0.45)]",
-    preview: "bg-rose-300/70",
+    style: "bg-rose-500 border border-rose-600 text-white shadow-sm",
+    preview: "bg-rose-300",
     rotations: [
       [
         { x: 0, y: 0 },
@@ -264,7 +256,6 @@ const formatCellKey = (x, y) => `${x}-${y}`;
 
 export default function TetrisGame() {
   const [board, setBoard] = useState(() => createEmptyBoard());
-  const [scale, setScale] = useState(1);
   const [currentPiece, setCurrentPiece] = useState(null);
   const [position, setPosition] = useState(() => createInitialPosition());
   const [nextPiece, setNextPiece] = useState(() => getRandomPiece());
@@ -273,7 +264,6 @@ export default function TetrisGame() {
   const [isPaused, setIsPaused] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [dropInterval, setDropInterval] = useState(INITIAL_DROP_INTERVAL);
-  const contentRef = useRef(null);
 
   const level = useMemo(
     () => Math.floor(linesCleared / 10) + 1,
@@ -309,59 +299,6 @@ export default function TetrisGame() {
     );
     setDropInterval(nextInterval);
   }, [level]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const updateScale = () => {
-      if (!contentRef.current) {
-        return;
-      }
-
-      const { offsetWidth, offsetHeight } = contentRef.current;
-      if (!offsetWidth || !offsetHeight) {
-        return;
-      }
-
-      const horizontalMargin = 48;
-      const verticalMargin = 72;
-      const availableWidth = Math.max(
-        window.innerWidth - horizontalMargin,
-        320,
-      );
-      const availableHeight = Math.max(
-        window.innerHeight - verticalMargin,
-        320,
-      );
-
-      const widthScale = availableWidth / offsetWidth;
-      const heightScale = availableHeight / offsetHeight;
-      const nextScale = Math.min(1, widthScale, heightScale);
-
-      setScale((previous) =>
-        Math.abs(previous - nextScale) > 0.01 ? nextScale : previous,
-      );
-    };
-
-    updateScale();
-
-    window.addEventListener("resize", updateScale);
-
-    let resizeObserver;
-    if (typeof ResizeObserver !== "undefined" && contentRef.current) {
-      resizeObserver = new ResizeObserver(() => updateScale());
-      resizeObserver.observe(contentRef.current);
-    }
-
-    return () => {
-      window.removeEventListener("resize", updateScale);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, []);
 
   const movePiece = useCallback(
     (dx, dy) => {
@@ -618,20 +555,20 @@ export default function TetrisGame() {
     const isGhost = ghostCells.has(key);
 
     let cellClasses =
-      "relative h-9 w-9 rounded-md border border-slate-700/40 bg-slate-900/40 shadow-inner md:h-10 md:w-10 xl:h-11 xl:w-11";
+      "relative h-8 w-8 rounded-sm border border-slate-300 bg-white shadow-inner sm:h-9 sm:w-9 md:h-10 md:w-10";
 
     if (cell) {
-      cellClasses = `relative h-9 w-9 rounded-md ${TETROMINOES[cell].style} md:h-10 md:w-10 xl:h-11 xl:w-11`;
+      cellClasses = `relative h-8 w-8 rounded-sm ${TETROMINOES[cell].style} sm:h-9 sm:w-9 md:h-10 md:w-10`;
     }
 
     if (isGhost) {
       cellClasses =
-        "relative h-9 w-9 rounded-md border border-white/15 bg-white/10 md:h-10 md:w-10 xl:h-11 xl:w-11";
+        "relative h-8 w-8 rounded-sm border-2 border-dashed border-blue-300/80 bg-transparent sm:h-9 sm:w-9 md:h-10 md:w-10";
     }
 
     if (isActive) {
       const activeStyle = TETROMINOES[currentPiece.type]?.style;
-      cellClasses = `relative h-9 w-9 rounded-md ${activeStyle} brightness-110 md:h-10 md:w-10 xl:h-11 xl:w-11`;
+      cellClasses = `relative h-8 w-8 rounded-sm ${activeStyle} ring-2 ring-blue-200 sm:h-9 sm:w-9 md:h-10 md:w-10`;
     }
 
     return <div key={key} className={cellClasses} aria-hidden />;
@@ -655,193 +592,155 @@ export default function TetrisGame() {
     return preview;
   }, [nextPiece]);
 
+  const gameStatus = isGameOver ? "Game over" : isPaused ? "Paused" : "Falling";
+  const dropSpeedSeconds = (dropInterval / 1000).toFixed(2);
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <FloatingBubbles />
+    <div className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
-        <div className="flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-          <div
-            className="origin-top flex-shrink-0 transition-transform duration-300 ease-out"
-            style={{ transform: `scale(${scale})` }}
-          >
-            <div
-              ref={contentRef}
-              className="flex flex-col items-center gap-8 text-slate-100"
-            >
-              <div className="text-center">
-                <h1 className="text-4xl font-semibold uppercase tracking-[0.4em] text-white/80">
-                  Cosmic Tetris
-                </h1>
-                <p className="mt-3 text-sm text-slate-300/80">
-                  Stack the falling tetrominoes to clear lines and climb through
-                  the levels of the cosmos.
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Tetris</h1>
+                <p className="text-sm text-slate-600">
+                  Rotate, stack, and clear falling tetrominoes before the board fills up.
                 </p>
               </div>
+              <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Score</p>
+                  <p className="text-xl font-semibold text-slate-900">{score.toLocaleString()}</p>
+                </div>
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Level</p>
+                  <p className="text-xl font-semibold text-slate-900">{level}</p>
+                </div>
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Lines</p>
+                  <p className="text-xl font-semibold text-slate-900">{linesCleared}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Status</p>
+                <p className="text-sm font-semibold text-slate-900">{gameStatus}</p>
+              </div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Drop Speed</p>
+                <p className="text-sm font-semibold text-slate-900">{dropSpeedSeconds}s</p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={resetGame}
+                className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 transition hover:border-emerald-400 hover:text-emerald-700"
+              >
+                Restart
+              </button>
+              <button
+                type="button"
+                onClick={togglePause}
+                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
+                  isPaused
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-600 hover:border-emerald-400 hover:text-emerald-700"
+                    : "border-blue-300 bg-blue-50 text-blue-700 hover:border-blue-400 hover:text-blue-800"
+                }`}
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </button>
+              <button
+                type="button"
+                onClick={hardDrop}
+                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 transition hover:border-slate-400 hover:text-slate-700"
+              >
+                Hard Drop
+              </button>
+            </div>
+          </div>
 
-              <div className="flex w-full max-w-5xl flex-col items-center gap-6 lg:flex-row lg:items-stretch lg:justify-center">
-                <div className="order-2 flex w-full flex-col gap-4 lg:order-1 lg:w-72">
-                  <div className="cosmic-card flex w-full flex-col gap-3 text-xs text-slate-200/90">
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                      <div>
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Score
-                        </span>
-                        <p className="text-xl font-semibold text-white/90">
-                          {score.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Level
-                        </span>
-                        <p className="text-xl font-semibold text-white/90">{level}</p>
-                      </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="order-2 w-full max-w-sm space-y-4 lg:order-1">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Next Piece</h2>
+                  <div className="mt-3 inline-block rounded-lg border border-slate-200 bg-white px-3 py-3">
+                    <div className="grid grid-cols-4 gap-1">
+                      {previewGrid.map((row, rowIndex) =>
+                        row.map((isFilled, columnIndex) => {
+                          const previewKey = `${rowIndex}-${columnIndex}`;
+                          const previewClasses =
+                            isFilled && nextPiece
+                              ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm`
+                              : "h-4 w-4 rounded-sm border border-slate-200 bg-slate-100";
+                          return <div key={previewKey} className={previewClasses} aria-hidden />;
+                        }),
+                      )}
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                      <div>
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Lines
-                        </span>
-                        <p className="text-lg font-medium text-white/80">{linesCleared}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Status
-                        </span>
-                        <p className="text-sm font-medium text-white/70">
-                          {isGameOver
-                            ? "Game Over"
-                            : isPaused
-                              ? "Paused"
-                              : "Falling"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                      <div>
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Drop Speed
-                        </span>
-                        <p className="text-sm font-medium text-white/70">
-                          {(dropInterval / 1000).toFixed(2)}s
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
-                          Next Piece
-                        </span>
-                        <div className="mt-1 inline-block rounded-xl border border-slate-700/40 bg-slate-900/60 p-2 shadow-inner">
-                          <div className="grid grid-cols-4 gap-[3px]">
-                            {previewGrid.map((row, rowIndex) =>
-                              row.map((isFilled, columnIndex) => {
-                                const previewKey = `${rowIndex}-${columnIndex}`;
-                                const previewClasses = isFilled
-                                  ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm shadow-[0_0_12px_rgba(148,163,184,0.35)]`
-                                  : "h-4 w-4 rounded-sm border border-slate-700/50 bg-slate-900/40";
-                                return (
-                                  <div key={previewKey} className={previewClasses} aria-hidden />
-                                );
-                              }),
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={resetGame}
-                        className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                      >
-                        Restart
-                      </button>
-                      <button
-                        type="button"
-                        onClick={togglePause}
-                        className={`cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 ${isPaused ? "cosmic-pill--active" : ""}`}
-                      >
-                        {isPaused ? "Resume" : "Pause"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={hardDrop}
-                        className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                      >
-                        Hard Drop
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="cosmic-card text-xs text-slate-300/80">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
-                      Controls
-                    </h2>
-                    <ul className="mt-3 space-y-2 leading-relaxed">
-                      <li>
-                        <span className="font-semibold text-white/80">Arrow Keys</span> —
-                        Move left, right, and soft drop
-                      </li>
-                      <li>
-                        <span className="font-semibold text-white/80">Arrow Up / X</span> —
-                        Rotate clockwise
-                      </li>
-                      <li>
-                        <span className="font-semibold text-white/80">Z</span> — Rotate
-                        counter-clockwise
-                      </li>
-                      <li>
-                        <span className="font-semibold text-white/80">Space</span> — Hard
-                        drop
-                      </li>
-                      <li>
-                        <span className="font-semibold text-white/80">P</span> — Pause or
-                        resume
-                      </li>
-                    </ul>
                   </div>
                 </div>
 
-                <div className="order-1 flex items-center justify-center lg:order-2">
-                  <div className="relative rounded-[28px] border border-slate-700/40 bg-slate-900/50 p-5 shadow-[0_24px_70px_rgba(2,6,23,0.65)] backdrop-blur-sm">
-                    <div className="grid grid-cols-10 gap-[4px]">
-                      {board.map((row, rowIndex) =>
-                        row.map((cell, columnIndex) =>
-                          renderBoardCell(cell, columnIndex, rowIndex),
-                        ),
-                      )}
-                    </div>
-                    {isGameOver ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/80 backdrop-blur">
-                        <p className="text-2xl font-semibold text-white/90">Game Over</p>
-                        <p className="mt-2 text-sm text-slate-300/80">
-                          Press restart to play again.
-                        </p>
-                      </div>
-                    ) : null}
-                    {isPaused && !isGameOver ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[28px] bg-slate-950/70 backdrop-blur">
-                        <p className="text-xl font-semibold text-white/90">Paused</p>
-                        <p className="mt-2 text-xs text-slate-300/80">
-                          Press resume or the P key to continue.
-                        </p>
-                      </div>
-                    ) : null}
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Controls</h2>
+                  <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                    <li>
+                      <span className="font-semibold text-slate-700">Arrow Keys</span> — Move left, right, and soft drop
+                    </li>
+                    <li>
+                      <span className="font-semibold text-slate-700">Arrow Up / X</span> — Rotate clockwise
+                    </li>
+                    <li>
+                      <span className="font-semibold text-slate-700">Z</span> — Rotate counter-clockwise
+                    </li>
+                    <li>
+                      <span className="font-semibold text-slate-700">Space</span> — Hard drop instantly
+                    </li>
+                    <li>
+                      <span className="font-semibold text-slate-700">P</span> — Pause or resume
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="order-1 flex justify-center lg:order-2 lg:flex-1">
+                <div className="relative rounded-2xl border border-slate-200 bg-slate-100 p-3 shadow-inner">
+                  <div className="grid grid-cols-10 gap-1 sm:gap-[6px]">
+                    {board.map((row, rowIndex) =>
+                      row.map((cell, columnIndex) =>
+                        renderBoardCell(cell, columnIndex, rowIndex),
+                      ),
+                    )}
                   </div>
+                  {isGameOver ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-white/85 p-6 text-center">
+                      <p className="text-2xl font-semibold text-slate-900">Game Over</p>
+                      <p className="mt-2 text-sm text-slate-600">Press restart to play again.</p>
+                    </div>
+                  ) : null}
+                  {isPaused && !isGameOver ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-white/80 p-6 text-center">
+                      <p className="text-xl font-semibold text-slate-900">Paused</p>
+                      <p className="mt-2 text-xs text-slate-600">Press resume or the P key to continue.</p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
           </div>
-          <GameFooter
-            gameName="Tetris"
-            creator="Alexey Pajitnov"
-            moreInfo={{
-              url: "https://tetris.com/about-tetris",
-              label: "the official Tetris history",
-            }}
-            className="w-full max-w-md lg:max-w-xs lg:self-start"
-          />
         </div>
+
+        <GameFooter
+          gameName="Tetris"
+          creator="Alexey Pajitnov"
+          moreInfo={{
+            url: "https://tetris.com/about-tetris",
+            label: "the official Tetris history",
+          }}
+          className="w-full max-w-md lg:max-w-xs lg:self-start"
+        />
       </div>
     </div>
   );

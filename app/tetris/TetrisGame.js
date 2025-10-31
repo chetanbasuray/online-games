@@ -18,7 +18,8 @@ const createInitialPosition = () => ({
 
 const TETROMINOES = {
   I: {
-    style: "bg-cyan-400 border border-cyan-500 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-cyan-400 via-sky-400 to-sky-500 border border-cyan-500 text-white shadow-[0_10px_18px_rgba(14,165,233,0.28)]",
     preview: "bg-cyan-300",
     rotations: [
       [
@@ -36,7 +37,8 @@ const TETROMINOES = {
     ],
   },
   J: {
-    style: "bg-blue-500 border border-blue-600 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-blue-500 via-blue-500 to-indigo-500 border border-blue-600 text-white shadow-[0_10px_18px_rgba(59,130,246,0.28)]",
     preview: "bg-blue-300",
     rotations: [
       [
@@ -66,7 +68,8 @@ const TETROMINOES = {
     ],
   },
   L: {
-    style: "bg-orange-400 border border-orange-500 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-orange-400 via-amber-400 to-amber-500 border border-orange-500 text-white shadow-[0_10px_18px_rgba(251,146,60,0.3)]",
     preview: "bg-orange-300",
     rotations: [
       [
@@ -96,7 +99,8 @@ const TETROMINOES = {
     ],
   },
   O: {
-    style: "bg-yellow-300 border border-yellow-400 text-slate-900 shadow-sm",
+    style:
+      "bg-gradient-to-br from-yellow-300 via-amber-200 to-amber-400 border border-yellow-400 text-slate-900 shadow-[0_10px_18px_rgba(250,204,21,0.28)]",
     preview: "bg-yellow-200",
     rotations: [
       [
@@ -108,7 +112,8 @@ const TETROMINOES = {
     ],
   },
   S: {
-    style: "bg-emerald-500 border border-emerald-600 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-emerald-500 via-emerald-500 to-teal-500 border border-emerald-600 text-white shadow-[0_10px_18px_rgba(16,185,129,0.28)]",
     preview: "bg-emerald-300",
     rotations: [
       [
@@ -126,7 +131,8 @@ const TETROMINOES = {
     ],
   },
   T: {
-    style: "bg-purple-500 border border-purple-600 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-purple-500 via-fuchsia-500 to-purple-600 border border-purple-600 text-white shadow-[0_10px_18px_rgba(168,85,247,0.28)]",
     preview: "bg-purple-300",
     rotations: [
       [
@@ -156,7 +162,8 @@ const TETROMINOES = {
     ],
   },
   Z: {
-    style: "bg-rose-500 border border-rose-600 text-white shadow-sm",
+    style:
+      "bg-gradient-to-br from-rose-500 via-rose-500 to-pink-500 border border-rose-600 text-white shadow-[0_10px_18px_rgba(244,63,94,0.28)]",
     preview: "bg-rose-300",
     rotations: [
       [
@@ -554,21 +561,23 @@ export default function TetrisGame() {
     const isActive = activeCells.has(key);
     const isGhost = ghostCells.has(key);
 
+    const baseSize = "h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10";
+
     let cellClasses =
-      "relative h-8 w-8 rounded-sm border border-slate-300 bg-white shadow-inner sm:h-9 sm:w-9 md:h-10 md:w-10";
+      `tetris-cell tetris-cell-empty relative ${baseSize} rounded-md border border-slate-300/70 bg-gradient-to-br from-slate-100/70 via-white to-slate-200/60 shadow-[inset_0_1px_1px_rgba(148,163,184,0.6)]`;
 
     if (cell) {
-      cellClasses = `relative h-8 w-8 rounded-sm ${TETROMINOES[cell].style} sm:h-9 sm:w-9 md:h-10 md:w-10`;
+      cellClasses = `tetris-cell tetris-cell-filled relative ${baseSize} rounded-md ${TETROMINOES[cell].style}`;
     }
 
     if (isGhost) {
       cellClasses =
-        "relative h-8 w-8 rounded-sm border-2 border-dashed border-blue-300/80 bg-transparent sm:h-9 sm:w-9 md:h-10 md:w-10";
+        `tetris-cell tetris-cell-ghost relative ${baseSize} rounded-md border-2 border-dashed border-sky-300/80 bg-sky-50/40`;
     }
 
     if (isActive) {
       const activeStyle = TETROMINOES[currentPiece.type]?.style;
-      cellClasses = `relative h-8 w-8 rounded-sm ${activeStyle} ring-2 ring-blue-200 sm:h-9 sm:w-9 md:h-10 md:w-10`;
+      cellClasses = `tetris-cell tetris-cell-active tetris-cell-filled relative ${baseSize} rounded-md ${activeStyle}`;
     }
 
     return <div key={key} className={cellClasses} aria-hidden />;
@@ -706,26 +715,28 @@ export default function TetrisGame() {
               </div>
 
               <div className="order-1 flex justify-center lg:order-2 lg:flex-1">
-                <div className="relative rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-3 shadow-inner">
-                  <div className="grid grid-cols-10 gap-1 sm:gap-[6px]">
-                    {board.map((row, rowIndex) =>
-                      row.map((cell, columnIndex) =>
-                        renderBoardCell(cell, columnIndex, rowIndex),
-                      ),
-                    )}
+                <div className="tetris-board relative rounded-[28px] border border-slate-200/70 bg-white/80 p-4 shadow-[0_28px_60px_rgba(15,23,42,0.16)]">
+                  <div className="tetris-board-inner relative rounded-[18px] border border-white/40 bg-gradient-to-b from-white/95 via-slate-50/80 to-blue-50/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+                    <div className="tetris-grid grid grid-cols-10 gap-[5px] sm:gap-[6px] md:gap-[7px]">
+                      {board.map((row, rowIndex) =>
+                        row.map((cell, columnIndex) =>
+                          renderBoardCell(cell, columnIndex, rowIndex),
+                        ),
+                      )}
+                    </div>
+                    {isGameOver ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[18px] bg-gradient-to-br from-white/95 via-rose-50/75 to-amber-50/75 p-6 text-center shadow-inner">
+                        <p className="text-2xl font-semibold text-slate-900">Game Over</p>
+                        <p className="mt-2 text-sm text-slate-600">Press restart to play again.</p>
+                      </div>
+                    ) : null}
+                    {isPaused && !isGameOver ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[18px] bg-white/85 p-6 text-center">
+                        <p className="text-xl font-semibold text-slate-900">Paused</p>
+                        <p className="mt-2 text-xs text-slate-600">Press resume or the P key to continue.</p>
+                      </div>
+                    ) : null}
                   </div>
-                  {isGameOver ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-white/95 via-rose-50/70 to-amber-50/70 p-6 text-center shadow-inner">
-                      <p className="text-2xl font-semibold text-slate-900">Game Over</p>
-                      <p className="mt-2 text-sm text-slate-600">Press restart to play again.</p>
-                    </div>
-                  ) : null}
-                  {isPaused && !isGameOver ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-white/80 p-6 text-center">
-                      <p className="text-xl font-semibold text-slate-900">Paused</p>
-                      <p className="mt-2 text-xs text-slate-600">Press resume or the P key to continue.</p>
-                    </div>
-                  ) : null}
                 </div>
               </div>
             </div>

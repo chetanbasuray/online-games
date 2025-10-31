@@ -574,23 +574,23 @@ export default function TetrisGame() {
     const isActive = activeCells.has(key);
     const isGhost = ghostCells.has(key);
 
-    const baseSize = "h-9 w-9 sm:h-10 sm:w-10 lg:h-12 lg:w-12";
+    const baseSize = "h-10 w-10 sm:h-11 sm:w-11 lg:h-12 lg:w-12";
 
     let cellClasses =
-      `tetris-cell tetris-cell-empty relative ${baseSize} rounded-md border border-slate-300/70 bg-gradient-to-br from-slate-100/70 via-white to-slate-200/60 shadow-[inset_0_1px_1px_rgba(148,163,184,0.6)]`;
+      `tetris-cell tetris-cell-empty relative ${baseSize} rounded-lg border border-white/25 bg-slate-900/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur`;
 
     if (cell) {
-      cellClasses = `tetris-cell tetris-cell-filled relative ${baseSize} rounded-md ${TETROMINOES[cell].style}`;
+      cellClasses = `tetris-cell tetris-cell-filled relative ${baseSize} rounded-lg ${TETROMINOES[cell].style}`;
     }
 
     if (isGhost) {
       cellClasses =
-        `tetris-cell tetris-cell-ghost relative ${baseSize} rounded-md border-2 border-dashed border-sky-300/80 bg-sky-50/40`;
+        `tetris-cell tetris-cell-ghost relative ${baseSize} rounded-lg border border-sky-300/60 bg-sky-300/10 shadow-[inset_0_0_14px_rgba(56,189,248,0.35)]`;
     }
 
     if (isActive) {
       const activeStyle = TETROMINOES[currentPiece.type]?.style;
-      cellClasses = `tetris-cell tetris-cell-active tetris-cell-filled relative ${baseSize} rounded-md ${activeStyle}`;
+      cellClasses = `tetris-cell tetris-cell-active tetris-cell-filled relative ${baseSize} rounded-lg ${activeStyle} ring-2 ring-white/40`;
     }
 
     return <div key={key} className={cellClasses} aria-hidden />;
@@ -616,121 +616,109 @@ export default function TetrisGame() {
 
   const gameStatus = isGameOver ? "Game over" : isPaused ? "Paused" : "Falling";
   const dropSpeedSeconds = (dropInterval / 1000).toFixed(2);
+  const linesIntoCurrentLevel = linesCleared % 10;
+  const linesUntilNextLevel = linesIntoCurrentLevel === 0 ? 10 : 10 - linesIntoCurrentLevel;
+  const levelProgress = Math.round((linesIntoCurrentLevel / 10) * 100);
 
   return (
-    <div className="min-h-screen px-4 py-10 text-slate-900">
+    <div className="relative isolate flex min-h-screen w-full justify-center overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 px-4 pb-16 pt-14 text-slate-900 lg:px-8">
       {showSupportWidget && <SupportWidget />}
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <div className="w-full max-w-3xl space-y-6">
-          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div className="space-y-1">
-                <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Tetris</h1>
-                <p className="text-sm text-slate-600">
-                  Rotate, stack, and clear falling tetrominoes before the board fills up.
-                </p>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-[8%] top-[-10%] h-72 w-72 rounded-full bg-sky-200/55 blur-3xl" />
+        <div className="absolute right-[-6%] top-[22%] h-96 w-96 rounded-full bg-rose-200/45 blur-3xl" />
+        <div className="absolute left-1/2 top-[68%] h-[22rem] w-[22rem] -translate-x-1/2 rounded-full bg-emerald-200/45 blur-[140px]" />
+      </div>
+      <div className="relative z-10 flex w-full max-w-6xl flex-col gap-12">
+        <header className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+          <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm">
+            Modern Classic
+          </span>
+          <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">Tetris</h1>
+          <p className="text-base text-slate-600 sm:text-lg">
+            Guide glowing tetrominoes through a polished cabinet and chase ever-higher scores in this refreshed classic.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={resetGame}
+              className="inline-flex items-center justify-center rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-teal-100 to-sky-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
+            >
+              Restart
+            </button>
+            <button
+              type="button"
+              onClick={togglePause}
+              className={`inline-flex items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] shadow-sm transition ${
+                isPaused
+                  ? "border-transparent bg-gradient-to-r from-emerald-100 via-teal-100 to-sky-100 text-emerald-700 hover:brightness-110"
+                  : "border-transparent bg-gradient-to-r from-sky-100 via-blue-100 to-emerald-100 text-blue-800 hover:brightness-110"
+              }`}
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+            <button
+              type="button"
+              onClick={hardDrop}
+              className="inline-flex items-center justify-center rounded-full border border-slate-300/80 bg-white/85 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-sky-300 hover:bg-sky-50/70 hover:text-sky-700"
+            >
+              Hard Drop
+            </button>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,280px)_minmax(0,1fr)_minmax(0,260px)] xl:items-start">
+          <div className="order-2 flex flex-col gap-5 xl:order-1">
+            <div className="rounded-[26px] border border-white/75 bg-white/70 p-6 shadow-[0_22px_48px_rgba(148,163,184,0.28)] backdrop-blur">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Score</h2>
+                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-100/80 to-sky-100/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-emerald-700">
+                  {gameStatus}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
-                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
-                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Score</p>
-                  <p className="text-xl font-semibold text-slate-900">{score.toLocaleString()}</p>
+              <p className="mt-5 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">{score.toLocaleString()}</p>
+              <dl className="mt-6 grid grid-cols-2 gap-4 text-sm text-slate-600">
+                <div>
+                  <dt className="font-semibold text-slate-700">Lines cleared</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-900">{linesCleared}</dd>
                 </div>
-                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
-                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Level</p>
-                  <p className="text-xl font-semibold text-slate-900">{level}</p>
+                <div>
+                  <dt className="font-semibold text-slate-700">Drop speed</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-900">{dropSpeedSeconds}s</dd>
                 </div>
-                <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
-                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Lines</p>
-                  <p className="text-xl font-semibold text-slate-900">{linesCleared}</p>
-                </div>
-              </div>
+              </dl>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 text-center shadow-sm">
-                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Status</p>
-                <p className="text-sm font-semibold text-slate-900">{gameStatus}</p>
+            <div className="rounded-[26px] border border-white/70 bg-gradient-to-br from-sky-100/80 via-emerald-100/75 to-amber-100/75 p-6 shadow-[0_22px_48px_rgba(56,189,248,0.25)]">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">
+                <span>Level</span>
+                <span>{level}</span>
               </div>
-              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 text-center shadow-sm">
-                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Drop Speed</p>
-                <p className="text-sm font-semibold text-slate-900">{dropSpeedSeconds}s</p>
+              <div className="mt-5 h-2 w-full rounded-full bg-white/60">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-500 transition-[width]"
+                  style={{ width: `${levelProgress}%` }}
+                />
               </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={resetGame}
-                className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
-              >
-                Restart
-              </button>
-              <button
-                type="button"
-                onClick={togglePause}
-                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] shadow-sm transition ${
-                  isPaused
-                    ? "border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 text-emerald-700 hover:brightness-110"
-                    : "border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 text-blue-800 hover:brightness-110"
-                }`}
-              >
-                {isPaused ? "Resume" : "Pause"}
-              </button>
-              <button
-                type="button"
-                onClick={hardDrop}
-                className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
-              >
-                Hard Drop
-              </button>
+              <p className="mt-3 text-xs text-slate-600">
+                {linesUntilNextLevel === 10
+                  ? "Clear 10 lines to level up"
+                  : `${linesUntilNextLevel} line${linesUntilNextLevel === 1 ? "" : "s"} to level up`}
+              </p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="order-2 w-full max-w-sm space-y-4 lg:order-1">
-                <div className="rounded-lg border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-4 shadow-sm">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Next Piece</h2>
-                  <div className="mt-3 inline-block rounded-lg border border-slate-200/70 bg-white/80 px-3 py-3 shadow-sm">
-                    <div className="grid grid-cols-4 gap-1">
-                      {previewGrid.map((row, rowIndex) =>
-                        row.map((isFilled, columnIndex) => {
-                          const previewKey = `${rowIndex}-${columnIndex}`;
-                          const previewClasses =
-                            isFilled && nextPiece
-                              ? `${TETROMINOES[nextPiece.type].preview} h-4 w-4 rounded-sm shadow-sm`
-                              : "h-4 w-4 rounded-sm border border-slate-200/70 bg-gradient-to-br from-white via-blue-50 to-white";
-                          return <div key={previewKey} className={previewClasses} aria-hidden />;
-                        }),
-                      )}
+          <div className="order-1 flex justify-center xl:order-2">
+            <div className="relative w-full max-w-[min(560px,90vw)]">
+              <div className="pointer-events-none absolute inset-x-[-25%] top-1/2 -z-10 h-[120%] -translate-y-1/2 rounded-[50%] bg-gradient-to-br from-sky-200/25 via-blue-200/20 to-emerald-200/25 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[34px] border border-white/75 bg-white/55 p-[18px] shadow-[0_35px_80px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+                <div className="relative overflow-hidden rounded-[26px] border border-white/25 bg-gradient-to-b from-slate-900/92 via-slate-950/94 to-slate-900/92 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.25),transparent_60%)]" />
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(244,114,182,0.22),transparent_60%)]" />
+                  <div className="pointer-events-none absolute inset-0 border border-white/5 mix-blend-soft-light" />
+                  <div className="relative">
+                    <div className="pointer-events-none absolute left-4 top-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.35em] text-white/80 shadow-sm">
+                      {gameStatus}
                     </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 p-4 shadow-sm">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Controls</h2>
-                  <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                    <li>
-                      <span className="font-semibold text-slate-700">Arrow Keys</span> — Move left, right, and soft drop
-                    </li>
-                    <li>
-                      <span className="font-semibold text-slate-700">Arrow Up / X</span> — Rotate clockwise
-                    </li>
-                    <li>
-                      <span className="font-semibold text-slate-700">Z</span> — Rotate counter-clockwise
-                    </li>
-                    <li>
-                      <span className="font-semibold text-slate-700">Space</span> — Hard drop instantly
-                    </li>
-                    <li>
-                      <span className="font-semibold text-slate-700">P</span> — Pause or resume
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="order-1 flex justify-center lg:order-2 lg:flex-1">
-                <div className="tetris-board relative rounded-[28px] border border-slate-200/70 bg-white/80 p-4 shadow-[0_28px_60px_rgba(15,23,42,0.16)]">
-                  <div className="tetris-board-inner relative rounded-[18px] border border-white/40 bg-gradient-to-b from-white/95 via-slate-50/80 to-blue-50/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
-                    <div className="tetris-grid grid grid-cols-10 gap-[5px] sm:gap-[6px] md:gap-[7px]">
+                    <div className="relative grid grid-cols-10 gap-[4px] pt-8 sm:gap-[5px] sm:pt-10 md:gap-[6px]">
                       {board.map((row, rowIndex) =>
                         row.map((cell, columnIndex) =>
                           renderBoardCell(cell, columnIndex, rowIndex),
@@ -738,20 +726,75 @@ export default function TetrisGame() {
                       )}
                     </div>
                     {isGameOver ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[18px] bg-gradient-to-br from-white/95 via-rose-50/75 to-amber-50/75 p-6 text-center shadow-inner">
-                        <p className="text-2xl font-semibold text-slate-900">Game Over</p>
-                        <p className="mt-2 text-sm text-slate-600">Press restart to play again.</p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[22px] bg-slate-950/85 p-8 text-center shadow-[inset_0_0_70px_rgba(15,23,42,0.9)]">
+                        <p className="text-3xl font-semibold text-white">Game Over</p>
+                        <p className="mt-3 text-sm text-slate-200">Press restart to try again.</p>
                       </div>
                     ) : null}
                     {isPaused && !isGameOver ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[18px] bg-white/85 p-6 text-center">
-                        <p className="text-xl font-semibold text-slate-900">Paused</p>
-                        <p className="mt-2 text-xs text-slate-600">Press resume or the P key to continue.</p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[22px] bg-white/10 p-8 text-center backdrop-blur">
+                        <p className="text-2xl font-semibold text-white">Paused</p>
+                        <p className="mt-2 text-sm text-slate-200">Press resume or the P key to continue.</p>
                       </div>
                     ) : null}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="order-3 flex flex-col gap-5 xl:order-3">
+            <div className="rounded-[26px] border border-white/75 bg-white/70 p-6 shadow-[0_22px_48px_rgba(99,102,241,0.18)] backdrop-blur">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">Next Piece</h2>
+              <div className="mt-4 rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/80 to-violet-50/80 p-4 shadow-inner">
+                <div className="grid grid-cols-4 gap-2">
+                  {previewGrid.map((row, rowIndex) =>
+                    row.map((isFilled, columnIndex) => {
+                      const previewKey = `${rowIndex}-${columnIndex}`;
+                      const previewClasses =
+                        isFilled && nextPiece
+                          ? `${TETROMINOES[nextPiece.type].preview} h-6 w-6 rounded-lg shadow-sm`
+                          : "h-6 w-6 rounded-lg border border-slate-200/70 bg-white/80";
+                      return <div key={previewKey} className={previewClasses} aria-hidden />;
+                    }),
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="rounded-[26px] border border-white/75 bg-white/70 p-6 shadow-[0_22px_48px_rgba(148,163,184,0.24)] backdrop-blur">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">Controls</h2>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                <li className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-3 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-700">
+                    ← → ↓
+                  </span>
+                  <span className="leading-tight">Move left, right, and soft drop</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-3 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-700">
+                    ↑ / X
+                  </span>
+                  <span className="leading-tight">Rotate clockwise</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-3 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-700">
+                    Z
+                  </span>
+                  <span className="leading-tight">Rotate counter-clockwise</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-3 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-700">
+                    Space
+                  </span>
+                  <span className="leading-tight">Hard drop instantly</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-md border border-slate-200 bg-white/80 px-3 py-1 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-slate-700">
+                    P
+                  </span>
+                  <span className="leading-tight">Pause or resume</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -763,7 +806,7 @@ export default function TetrisGame() {
             url: "https://tetris.com/about-tetris",
             label: "the official Tetris history",
           }}
-          className="w-full max-w-md lg:max-w-xs lg:self-start"
+          className="mx-auto w-full max-w-md"
         />
       </div>
     </div>

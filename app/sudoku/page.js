@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
@@ -225,11 +224,9 @@ export default function SudokuPage() {
       {showSupportWidget && <SupportWidget />}
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="cosmic-panel flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8 lg:max-w-3xl"
+        <div
+          className="cosmic-panel fade-in-up flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8 lg:max-w-3xl"
+          style={{ "--fade-duration": "0.8s", "--fade-distance": "20px" }}
         >
           <div className="space-y-2">
             <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Sudoku</h1>
@@ -285,16 +282,11 @@ export default function SudokuPage() {
         </div>
 
           {message && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="text-sm font-semibold text-white/80"
-            >
+            <p className="fade-in text-sm font-semibold text-white/80" style={{ "--fade-duration": "0.5s" }}>
               {message}
-            </motion.p>
+            </p>
           )}
-        </motion.div>
+        </div>
         <GameFooter
           gameName="Sudoku"
           creator="Howard Garns, with modern popularity driven by Nikoli"

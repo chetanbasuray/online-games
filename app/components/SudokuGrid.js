@@ -2,7 +2,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import * as Tone from "tone";
-import { motion } from "framer-motion";
 
 export default function SudokuGrid({ puzzleData, givenMask, onComplete }) {
   const SIZE = 9;
@@ -109,16 +108,13 @@ export default function SudokuGrid({ puzzleData, givenMask, onComplete }) {
             const isHighlighted = highlightCells.some(([hr, hc]) => hr === r && hc === c);
 
             return (
-              <motion.div
+              <div
                 key={c}
                 onClick={() => setSelected([r, c])}
-                initial={{ scale: 1 }}
-                animate={isHighlighted ? { scale: [1, 1.4, 1] } : {}}
-                transition={{ duration: 0.4 }}
-                className={`w-12 h-12 flex items-center justify-center cursor-pointer ${blockColor} ${textColor} ${isSelected ? "ring-2 ring-yellow-400" : ""}`}
+                className={`sudoku-cell w-12 h-12 flex items-center justify-center cursor-pointer ${blockColor} ${textColor} ${isSelected ? "ring-2 ring-yellow-400" : ""} ${isHighlighted ? "sudoku-cell--highlight" : ""}`}
               >
                 {num !== 0 ? num : ""}
-              </motion.div>
+              </div>
             );
           })}
         </div>

@@ -574,7 +574,7 @@ export default function TetrisGame() {
     const isActive = activeCells.has(key);
     const isGhost = ghostCells.has(key);
 
-    const baseSize = "h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10";
+    const baseSize = "h-9 w-9 sm:h-10 sm:w-10 lg:h-12 lg:w-12";
 
     let cellClasses =
       `tetris-cell tetris-cell-empty relative ${baseSize} rounded-md border border-slate-300/70 bg-gradient-to-br from-slate-100/70 via-white to-slate-200/60 shadow-[inset_0_1px_1px_rgba(148,163,184,0.6)]`;

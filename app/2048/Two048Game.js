@@ -343,16 +343,17 @@ export default function Two048Game() {
       <FloatingBubbles count={14} area="full" zIndex={1} />
       {showSupportWidget && <SupportWidget />}
 
-      <div className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10">
-        <header className="space-y-3">
-          <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">2048</h1>
-          <p className="text-sm uppercase tracking-[0.5em] text-white/60">
-            Fuse the tiles, chase the light
-          </p>
-          <p className="text-base text-white/75 sm:text-lg">
-            Merge matching tiles to craft luminous numbers. Use your keyboard, swipe gestures, or the starlit controls below.
-          </p>
-        </header>
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="cosmic-panel flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10 lg:max-w-3xl">
+          <header className="space-y-3">
+            <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">2048</h1>
+            <p className="text-sm uppercase tracking-[0.5em] text-white/60">
+              Fuse the tiles, chase the light
+            </p>
+            <p className="text-base text-white/75 sm:text-lg">
+              Merge matching tiles to craft luminous numbers. Use your keyboard, swipe gestures, or the starlit controls below.
+            </p>
+          </header>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
           <div className="cosmic-card px-6 py-4">
@@ -415,43 +416,45 @@ export default function Two048Game() {
           )}
         </div>
 
-        <div className="w-full max-w-sm">
-          <div className="grid grid-cols-3 gap-4">
-            <div />
-            <DirectionButton
-              label="↑"
-              ariaLabel="Move tiles up"
-              onClick={() => handleMove("ArrowUp")}
-            />
-            <div />
-            <DirectionButton
-              label="←"
-              ariaLabel="Move tiles left"
-              onClick={() => handleMove("ArrowLeft")}
-            />
-            <DirectionButton
-              label="↓"
-              ariaLabel="Move tiles down"
-              onClick={() => handleMove("ArrowDown")}
-              className="col-start-2"
-            />
-            <DirectionButton
-              label="→"
-              ariaLabel="Move tiles right"
-              onClick={() => handleMove("ArrowRight")}
-              className="col-start-3"
-            />
+          <div className="w-full max-w-sm">
+            <div className="grid grid-cols-3 gap-4">
+              <div />
+              <DirectionButton
+                label="↑"
+                ariaLabel="Move tiles up"
+                onClick={() => handleMove("ArrowUp")}
+              />
+              <div />
+              <DirectionButton
+                label="←"
+                ariaLabel="Move tiles left"
+                onClick={() => handleMove("ArrowLeft")}
+              />
+              <DirectionButton
+                label="↓"
+                ariaLabel="Move tiles down"
+                onClick={() => handleMove("ArrowDown")}
+                className="col-start-2"
+              />
+              <DirectionButton
+                label="→"
+                ariaLabel="Move tiles right"
+                onClick={() => handleMove("ArrowRight")}
+                className="col-start-3"
+              />
+            </div>
           </div>
         </div>
+        <GameFooter
+          gameName="2048"
+          creator="Gabriele Cirulli"
+          moreInfo={{
+            url: "https://play2048.co/",
+            label: "the original 2048 site",
+          }}
+          className="w-full max-w-md lg:max-w-xs lg:self-start"
+        />
       </div>
-      <GameFooter
-        gameName="2048"
-        creator="Gabriele Cirulli"
-        moreInfo={{
-          url: "https://play2048.co/",
-          label: "the original 2048 site",
-        }}
-      />
     </div>
   );
 }

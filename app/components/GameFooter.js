@@ -1,13 +1,15 @@
 "use client";
 
-export default function GameFooter({ gameName, creator, moreInfo }) {
+export default function GameFooter({ gameName, creator, moreInfo, className = "" }) {
   if (!creator && !moreInfo?.url) {
     return null;
   }
 
   return (
-    <footer className="relative z-10 mt-10 flex w-full max-w-4xl flex-col items-center text-center sm:mx-auto sm:w-auto">
-      <div className="cosmic-card w-full max-w-3xl space-y-3 px-6 py-5 sm:mx-auto sm:w-auto">
+    <footer
+      className={`relative z-10 mt-10 flex w-full max-w-4xl flex-col items-center text-center sm:mx-auto sm:w-auto lg:mt-0 lg:max-w-xs lg:items-start lg:text-left ${className}`}
+    >
+      <div className="cosmic-card w-full max-w-3xl space-y-3 px-6 py-5 sm:mx-auto sm:w-auto lg:mx-0 lg:w-full">
         <p className="text-xs font-semibold uppercase tracking-[0.45em] text-white/60">
           {gameName} Origins
         </p>

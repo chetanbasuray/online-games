@@ -137,20 +137,21 @@ export default function WordlePage() {
       <FloatingBubbles count={10} area="full" zIndex={1} />
       {showSupportWidget && <SupportWidget />}
 
-      <motion.div
-        initial={{ scale: 0.94, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12"
-      >
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="cosmic-heading text-4xl font-bold"
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <motion.div
+          initial={{ scale: 0.94, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="cosmic-panel flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12 lg:max-w-3xl"
         >
-          Wordle
-        </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="cosmic-heading text-4xl font-bold"
+          >
+            Wordle
+          </motion.h1>
 
         <p className="text-center text-sm uppercase tracking-[0.6em] text-white/60">
           Decode the daily word in six stellar guesses
@@ -234,15 +235,17 @@ export default function WordlePage() {
             {message}
           </motion.p>
         )}
-      </motion.div>
-      <GameFooter
-        gameName="Wordle"
-        creator="Josh Wardle"
-        moreInfo={{
-          url: "https://www.nytimes.com/games/wordle/index.html",
-          label: "The New York Times Wordle page",
-        }}
-      />
+        </motion.div>
+        <GameFooter
+          gameName="Wordle"
+          creator="Josh Wardle"
+          moreInfo={{
+            url: "https://www.nytimes.com/games/wordle/index.html",
+            label: "The New York Times Wordle page",
+          }}
+          className="w-full max-w-md lg:max-w-xs lg:self-start"
+        />
+      </div>
     </div>
   );
 }

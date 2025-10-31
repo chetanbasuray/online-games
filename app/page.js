@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { GAMES } from "./data/games";
 import SupportWidget from "./components/SupportWidget";
 import { hasPlayableGame } from "./utils/gameAvailability";
@@ -34,15 +36,8 @@ export default function HomePage() {
               .filter(Boolean)
               .join(" ");
 
-            return (
-              <a
-                key={game.path}
-                href={isDisabled ? "#" : game.path}
-                className={cardClasses}
-                aria-disabled={isDisabled}
-                tabIndex={isDisabled ? -1 : undefined}
-                onClick={isDisabled ? (event) => event.preventDefault() : undefined}
-              >
+            const cardContent = (
+              <>
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -68,7 +63,26 @@ export default function HomePage() {
                     Coming Soon
                   </span>
                 )}
-              </a>
+              </>
+            );
+
+            if (isDisabled) {
+              return (
+                <div
+                  key={game.path}
+                  className={cardClasses}
+                  aria-disabled="true"
+                  role="group"
+                >
+                  {cardContent}
+                </div>
+              );
+            }
+
+            return (
+              <Link key={game.path} href={game.path} className={cardClasses}>
+                {cardContent}
+              </Link>
             );
           })}
         </div>

@@ -367,20 +367,33 @@ export default function TetrisGame() {
     }
 
     const settledBoard = board.map((row) => [...row]);
+    let overflowedTop = false;
     getPieceCells(currentPiece.type, currentPiece.rotation).forEach(
       ({ x, y }) => {
         const boardX = position.x + x;
         const boardY = position.y + y;
+        if (boardY < 0) {
+          overflowedTop = true;
+          return;
+        }
+
         if (
           boardX >= 0 &&
           boardX < BOARD_WIDTH &&
-          boardY >= 0 &&
           boardY < BOARD_HEIGHT
         ) {
           settledBoard[boardY][boardX] = currentPiece.type;
         }
       },
     );
+
+    if (overflowedTop) {
+      setBoard(settledBoard);
+      setCurrentPiece(null);
+      setIsGameOver(true);
+      setIsPaused(false);
+      return;
+    }
 
     const { board: clearedBoard, linesCleared: clearedLines } =
       clearCompletedLines(settledBoard);

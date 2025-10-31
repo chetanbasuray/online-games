@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
@@ -80,6 +80,7 @@ export default function SudokuPage() {
   const [userBoard, setUserBoard] = useState([]);
   const [difficulty, setDifficulty] = useState("easy");
   const [message, setMessage] = useState("");
+  const [activeCell, setActiveCell] = useState(null);
 
   // Completion states
   const [completedRows, setCompletedRows] = useState([]);
@@ -104,6 +105,7 @@ export default function SudokuPage() {
     setCompletedBlocks([]);
     setMessage("");
     setTempGlow({});
+    setActiveCell(null);
   }, [difficulty]);
 
   useEffect(() => {
@@ -113,29 +115,13 @@ export default function SudokuPage() {
     setCompleteSound(new Tone.MembraneSynth().toDestination());
   }, []);
 
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (!/[1-9]/.test(e.key) && e.key !== "Backspace") return;
-      const cell = document.activeElement.dataset.cell;
-      if (!cell) return;
-      const [r, c] = cell.split("-").map(Number);
-      if (puzzle[r][c] !== 0) return;
-      const newBoard = userBoard.map(row => [...row]);
-      if (e.key === "Backspace") newBoard[r][c] = 0;
-      else newBoard[r][c] = parseInt(e.key);
-      setUserBoard(newBoard);
-      checkCompletion(newBoard, r, c);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [userBoard, puzzle, completedRows, completedCols, completedBlocks]);
+  const checkCompletion = useCallback(
+    (board, row, col) => {
+      let rowDone = false, colDone = false, blockDone = false;
 
-  const checkCompletion = (board, row, col) => {
-    let rowDone = false, colDone = false, blockDone = false;
-
-    // row
-    if (board[row].every(n => n !== 0) && board[row].every((n, i) => n === solution[row][i])) {
-      if (!completedRows.includes(row)) {
+      // row
+      if (board[row].every(n => n !== 0) && board[row].every((n, i) => n === solution[row][i])) {
+        if (!completedRows.includes(row)) {
         rowDone = true;
         setCompletedRows(prev => [...prev, row]);
       }
@@ -204,12 +190,76 @@ export default function SudokuPage() {
     setTimeout(() => setMessage(""), 2000);
 
     // full board
-    if (board.flat().every((n, i) => n === solution.flat()[i])) {
-      if (completeSound) completeSound.triggerAttackRelease("C6", "1n");
-      confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-      setMessage("🎉 Sudoku Completed!");
-    }
-  };
+      if (board.flat().every((n, i) => n === solution.flat()[i])) {
+        if (completeSound) completeSound.triggerAttackRelease("C6", "1n");
+        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        setMessage("🎉 Sudoku Completed!");
+      }
+    },
+    [
+      solution,
+      completedRows,
+      completedCols,
+      completedBlocks,
+      combinedSound,
+      rowColSound,
+      blockSound,
+      completeSound,
+    ]
+  );
+
+  const updateCellValue = useCallback(
+    (row, col, value) => {
+      if (puzzle[row][col] !== 0) return;
+      setUserBoard(prev => {
+        const next = prev.map(r => [...r]);
+        next[row][col] = value;
+        checkCompletion(next, row, col);
+        return next;
+      });
+    },
+    [puzzle, checkCompletion]
+  );
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (!/[1-9]/.test(e.key) && e.key !== "Backspace") return;
+      const cell = document.activeElement?.dataset?.cell;
+      if (!cell) return;
+      const [r, c] = cell.split("-").map(Number);
+      if (e.key === "Backspace") {
+        updateCellValue(r, c, 0);
+      } else {
+        updateCellValue(r, c, parseInt(e.key, 10));
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [updateCellValue]);
+
+  const handleCellChange = useCallback(
+    (row, col, rawValue) => {
+      const sanitized = rawValue.replace(/\D/g, "").slice(-1);
+      if (!sanitized) {
+        updateCellValue(row, col, 0);
+        return;
+      }
+      const value = parseInt(sanitized, 10);
+      if (value >= 1 && value <= 9) {
+        updateCellValue(row, col, value);
+      }
+    },
+    [updateCellValue]
+  );
+
+  const handlePadInput = useCallback(
+    (value) => {
+      if (!activeCell) return;
+      const [row, col] = activeCell;
+      updateCellValue(row, col, value);
+    },
+    [activeCell, updateCellValue]
+  );
 
   const getBlockColor = (r, c) => blockColors[Math.floor(r / 3)][Math.floor(c / 3)];
   const getCellGlowStyle = (r, c) => {
@@ -260,24 +310,55 @@ export default function SudokuPage() {
                 const isGiven = puzzle[r][c] !== 0;
                 const blockColor = getBlockColor(r, c);
                 const glow = getCellGlowStyle(r, c);
+                const isActive = activeCell && activeCell[0] === r && activeCell[1] === c;
                 return (
                   <input
                     key={`${r}-${c}`}
                     type="text"
+                    inputMode="numeric"
+                    pattern="[1-9]*"
                     maxLength={1}
                     data-cell={`${r}-${c}`}
                     value={num || ""}
                     readOnly={isGiven}
-                    className={`${glow} flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-center text-base font-semibold text-white shadow-[0_6px_16px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_18px_rgba(168,85,247,0.32)] sm:h-12 sm:w-12 sm:text-lg`}
+                    onFocus={() => setActiveCell(isGiven ? null : [r, c])}
+                    onChange={(e) => handleCellChange(r, c, e.target.value)}
+                    className={`${glow} ${
+                      isActive ? "ring-2 ring-offset-2 ring-offset-slate-900/60 ring-violet-400" : ""
+                    } flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-center text-base font-semibold text-white shadow-[0_6px_16px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_18px_rgba(168,85,247,0.32)] sm:h-12 sm:w-12 sm:text-lg`}
                     style={{
                       background: blockColor,
                       color: isGiven ? "rgba(248, 250, 252, 0.85)" : "#fdf4ff",
                       fontWeight: isGiven ? "600" : "700",
                     }}
+                    aria-label={`Row ${r + 1}, Column ${c + 1}`}
                   />
                 );
               })
             )}
+          </div>
+          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => handlePadInput(num)}
+                className="cosmic-pill h-10 min-w-[2.5rem] px-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={!activeCell}
+                aria-disabled={!activeCell}
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => handlePadInput(0)}
+              className="cosmic-pill h-10 min-w-[2.5rem] px-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!activeCell}
+              aria-disabled={!activeCell}
+            >
+              Clear
+            </button>
           </div>
         </div>
 

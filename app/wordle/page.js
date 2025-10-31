@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
 import Keyboard from "../components/keyboard";
+import GameFooter from "../components/GameFooter";
 import { WORDS } from "./words";
 
 const MAX_GUESSES = 6;
@@ -230,6 +231,14 @@ export default function WordlePage() {
           </motion.p>
         )}
       </motion.div>
+      <GameFooter
+        gameName="Wordle"
+        creator="Josh Wardle"
+        moreInfo={{
+          url: "https://www.nytimes.com/games/wordle/index.html",
+          label: "The New York Times Wordle page",
+        }}
+      />
     </div>
   );
 }

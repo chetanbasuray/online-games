@@ -1,7 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
+import GameFooter from "./GameFooter";
 
-export default function GamePlaceholder({ title }) {
+export default function GamePlaceholder({ title, creator, moreInfo }) {
   return (
     <div className="cosmic-page">
       <motion.div
@@ -18,6 +19,7 @@ export default function GamePlaceholder({ title }) {
           In development
         </span>
       </motion.div>
+      <GameFooter gameName={title} creator={creator} moreInfo={moreInfo} />
     </div>
   );
 }

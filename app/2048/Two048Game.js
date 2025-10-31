@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
+import GameFooter from "../components/GameFooter";
 
 const GRID_SIZE = 4;
 const TARGET_TILE = 2048;
@@ -439,6 +440,14 @@ export default function Two048Game() {
           </div>
         </div>
       </div>
+      <GameFooter
+        gameName="2048"
+        creator="Gabriele Cirulli"
+        moreInfo={{
+          url: "https://play2048.co/",
+          label: "the original 2048 site",
+        }}
+      />
     </div>
   );
 }

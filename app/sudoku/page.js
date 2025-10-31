@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
+import GameFooter from "../components/GameFooter";
 import * as Tone from "tone";
 import confetti from "canvas-confetti";
 
@@ -289,6 +290,14 @@ export default function SudokuPage() {
           </motion.p>
         )}
       </motion.div>
+      <GameFooter
+        gameName="Sudoku"
+        creator="Howard Garns, with modern popularity driven by Nikoli"
+        moreInfo={{
+          url: "https://en.wikipedia.org/wiki/Sudoku",
+          label: "the Sudoku article on Wikipedia",
+        }}
+      />
     </div>
   );
 }

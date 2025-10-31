@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
+import GameFooter from "../components/GameFooter";
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
@@ -827,6 +828,14 @@ export default function TetrisGame() {
           </div>
         </div>
       </div>
+      <GameFooter
+        gameName="Tetris"
+        creator="Alexey Pajitnov"
+        moreInfo={{
+          url: "https://tetris.com/about-tetris",
+          label: "the official Tetris history",
+        }}
+      />
     </div>
   );
 }

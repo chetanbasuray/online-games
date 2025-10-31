@@ -4,10 +4,13 @@ import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
 import Keyboard from "../components/keyboard";
 import GameFooter from "../components/GameFooter";
+import SupportWidget from "../components/SupportWidget";
+import { isGamePlayable } from "../utils/gameAvailability";
 import { WORDS } from "./words";
 
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
+const showSupportWidget = isGamePlayable("/wordle");
 
 export default function WordlePage() {
   const [solution, setSolution] = useState("");
@@ -132,6 +135,7 @@ export default function WordlePage() {
   return (
     <div className="cosmic-page">
       <FloatingBubbles count={10} area="full" zIndex={1} />
+      {showSupportWidget && <SupportWidget />}
 
       <motion.div
         initial={{ scale: 0.94, opacity: 0 }}

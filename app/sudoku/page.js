@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
+import SupportWidget from "../components/SupportWidget";
+import { isGamePlayable } from "../utils/gameAvailability";
 import * as Tone from "tone";
 import confetti from "canvas-confetti";
 
@@ -71,6 +73,7 @@ const blockColors = [
   ["rgba(244, 63, 94, 0.28)", "rgba(14, 165, 233, 0.28)", "rgba(250, 204, 21, 0.28)"],
   ["rgba(168, 85, 247, 0.28)", "rgba(56, 189, 248, 0.28)", "rgba(248, 113, 113, 0.28)"],
 ];
+const showSupportWidget = isGamePlayable("/sudoku");
 
 export default function SudokuPage() {
   const [solution, setSolution] = useState([]);
@@ -219,6 +222,7 @@ export default function SudokuPage() {
   return (
     <div className="cosmic-page">
       <FloatingBubbles count={12} area="full" zIndex={1} />
+      {showSupportWidget && <SupportWidget />}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

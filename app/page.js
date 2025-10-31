@@ -2,11 +2,16 @@
 import { motion } from "framer-motion";
 import { GAMES } from "./data/games";
 import FloatingBubbles from "./components/FloatingBubbles";
+import SupportWidget from "./components/SupportWidget";
+import { hasPlayableGame } from "./utils/gameAvailability";
 
 export default function HomePage() {
+  const showSupportWidget = hasPlayableGame();
+
   return (
     <div className="cosmic-page">
       <FloatingBubbles count={9} area="full" zIndex={1} />
+      {showSupportWidget && <SupportWidget />}
 
       <motion.div
         initial={{ opacity: 0, y: -30 }}

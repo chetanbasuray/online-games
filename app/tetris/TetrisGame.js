@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
+import SupportWidget from "../components/SupportWidget";
+import { isGamePlayable } from "../utils/gameAvailability";
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 const INITIAL_DROP_INTERVAL = 1000;
 const LEVEL_SPEED_BONUS = 65;
+const showSupportWidget = isGamePlayable("/tetris");
 
 const createInitialPosition = () => ({
   x: Math.floor(BOARD_WIDTH / 2) - 2,
@@ -655,6 +658,7 @@ export default function TetrisGame() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <FloatingBubbles />
+      {showSupportWidget && <SupportWidget />}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
         <div
           className="origin-top transition-transform duration-300 ease-out"

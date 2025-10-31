@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
+import SupportWidget from "../components/SupportWidget";
+import { isGamePlayable } from "../utils/gameAvailability";
 
 const GRID_SIZE = 4;
 const TARGET_TILE = 2048;
 const BEST_SCORE_KEY = "online-games-2048-best-score";
+const showSupportWidget = isGamePlayable("/2048");
 
 const createEmptyBoard = () =>
   Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
@@ -338,6 +341,7 @@ export default function Two048Game() {
   return (
     <div className="cosmic-page">
       <FloatingBubbles count={14} area="full" zIndex={1} />
+      {showSupportWidget && <SupportWidget />}
 
       <div className="cosmic-panel relative z-10 flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10">
         <header className="space-y-3">

@@ -7,18 +7,12 @@ const ROWS = [
 ];
 
 export default function Keyboard({ onKeyPress, letterStatus = {}, className = "", style }) {
-  const getKeyColor = (letter) => {
+  const getKeyStatus = (letter) => {
     const status = letterStatus[letter];
-    switch (status) {
-      case "correct":
-        return "cosmic-key--correct";
-      case "present":
-        return "cosmic-key--present";
-      case "absent":
-        return "cosmic-key--absent";
-      default:
-        return "";
+    if (status === "correct" || status === "present" || status === "absent") {
+      return status;
     }
+    return "unused";
   };
 
   const handlePress = (value) => {
@@ -39,7 +33,7 @@ export default function Keyboard({ onKeyPress, letterStatus = {}, className = ""
         <div key={index} className="wordle-keyboard-row">
           {row.map((key) => {
             const isWide = key === "ENTER" || key === "DELETE";
-            const statusClass = getKeyColor(key);
+            const status = getKeyStatus(key);
             const label = getLabel(key);
 
             return (
@@ -47,8 +41,9 @@ export default function Keyboard({ onKeyPress, letterStatus = {}, className = ""
                 key={key}
                 type="button"
                 onClick={() => handlePress(key)}
-                className={`cosmic-key ${statusClass}`.trim()}
+                className={`wordle-key ${isWide ? "wordle-key--wide" : ""}`.trim()}
                 data-wide={isWide ? "true" : undefined}
+                data-status={status}
                 aria-label={
                   key === "DELETE"
                     ? "Delete letter"

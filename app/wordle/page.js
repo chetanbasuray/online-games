@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import FloatingBubbles from "../components/FloatingBubbles";
 import Keyboard from "../components/keyboard";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
@@ -75,15 +74,15 @@ export default function WordlePage() {
   };
 
   const getTileColor = (letter, index, guess) => {
-    if (!guess) return "bg-slate-900/60 border border-white/10 text-white/80";
+    if (!guess) return "border border-slate-300 bg-slate-50 text-slate-900";
     const colors = getGuessColors(guess, solution);
     switch (colors[index]) {
       case "correct":
-        return "bg-emerald-500/90 text-white border border-emerald-200/60 glow-correct";
+        return "border-green-500 bg-green-500 text-white";
       case "present":
-        return "bg-amber-400/90 text-white border border-amber-200/60 glow-present";
+        return "border-amber-400 bg-amber-400 text-white";
       default:
-        return "bg-slate-700/70 text-white/70 border border-white/10";
+        return "border-slate-400 bg-slate-400 text-white";
     }
   };
 
@@ -144,104 +143,116 @@ export default function WordlePage() {
     }, WORD_LENGTH * 300 + 50);
   };
 
+  const guessesRemaining = Math.max(0, MAX_GUESSES - guesses.length);
+  const gameStatus = isWin
+    ? "Solved"
+    : guesses.length === MAX_GUESSES
+      ? "Ended"
+      : "In progress";
+
   return (
-    <div className="cosmic-page">
-      <FloatingBubbles count={10} area="full" zIndex={1} />
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <div
-          className="wordle-panel cosmic-panel scale-in flex w-full max-w-3xl flex-col items-center gap-8 px-5 py-9 sm:px-8 sm:py-12"
-          style={{ "--scale-from": "0.94", "--scale-duration": "0.7s" }}
-        >
-          <div className="wordle-heading fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.2s", "--fade-distance": "20px" }}>
-            <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Wordle</h1>
-            <p className="text-center text-xs uppercase tracking-[0.5em] text-white/60 sm:text-sm">
-              Decode the daily word in six stellar guesses
-            </p>
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Wordle</h1>
+              <p className="text-sm text-slate-600">
+                Guess the hidden five-letter word in six tries. After each guess, the tile colors show how close you are.
+              </p>
+            </div>
+            <div className="mt-6 grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Guesses Left</p>
+                <p className="text-lg font-semibold text-slate-900">{guessesRemaining}</p>
+              </div>
+              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Word Length</p>
+                <p className="text-lg font-semibold text-slate-900">{WORD_LENGTH}</p>
+              </div>
+              <div className="rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
+                <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Status</p>
+                <p className="text-lg font-semibold text-slate-900">{gameStatus}</p>
+              </div>
+            </div>
           </div>
 
-          <div
-            className="wordle-board fade-in-up"
-            role="grid"
-            aria-label="Wordle board"
-            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.35s", "--fade-distance": "10px" }}
-          >
-            {Array.from({ length: MAX_GUESSES }).map((_, row) => {
-              const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
-              const isCurrentRow = row === guesses.length;
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col items-center gap-6">
+              <div className="wordle-board" role="grid" aria-label="Wordle board">
+                {Array.from({ length: MAX_GUESSES }).map((_, row) => {
+                  const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
+                  const isCurrentRow = row === guesses.length;
 
-              return (
-                <div key={row} className="wordle-row" role="row">
-                  {Array.from({ length: WORD_LENGTH }).map((_, col) => {
-                    const letter = guess[col] || "";
-                    const bgColor =
-                      !isCurrentRow && guess
-                        ? getTileColor(letter, col, guess)
-                        : "bg-slate-900/60 border border-white/10 text-white/80";
-                    const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
-                    const tileClasses = [
-                      "tile wordle-tile flex items-center justify-center rounded-lg font-bold",
-                      bgColor,
-                      flipped ? "tile--flipped" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
+                  return (
+                    <div key={row} className="wordle-row" role="row">
+                      {Array.from({ length: WORD_LENGTH }).map((_, col) => {
+                        const letter = guess[col] || "";
+                        const bgColor =
+                          !isCurrentRow && guess
+                            ? getTileColor(letter, col, guess)
+                            : "border border-slate-300/70 bg-gradient-to-br from-white via-blue-50 to-white text-slate-900";
+                        const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
+                        const tileClasses = [
+                          "tile wordle-tile flex items-center justify-center rounded-lg font-bold",
+                          bgColor,
+                          flipped ? "tile--flipped" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
 
-                    return (
-                      <div
-                        key={col}
-                        className={tileClasses}
-                        style={{ "--flip-delay": `${col * 0.3}s` }}
-                        role="gridcell"
-                        aria-label={letter ? `Letter ${letter}` : "Empty"}
-                      >
-                        {letter}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                        return (
+                          <div
+                            key={col}
+                            className={tileClasses}
+                            style={{ "--flip-delay": `${col * 0.3}s` }}
+                            role="gridcell"
+                            aria-label={letter ? `Letter ${letter}` : "Empty"}
+                          >
+                            {letter}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Keyboard onKeyPress={handleVirtualKey} letterStatus={letterStatus} />
+
+              <div className="flex flex-wrap justify-center gap-2">
+                <button
+                  onClick={submitGuess}
+                  className="rounded-full border border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-800 shadow-sm transition hover:brightness-110"
+                  type="button"
+                >
+                  Submit Guess
+                </button>
+                <button
+                  onClick={removeLetter}
+                  className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
+                  type="button"
+                >
+                  Delete Letter
+                </button>
+                <button
+                  onClick={startNewGame}
+                  className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
+                  type="button"
+                >
+                  New Game
+                </button>
+              </div>
+
+              {message && (
+                <p className="text-center text-sm font-semibold text-slate-600" role="status" aria-live="polite">
+                  {message}
+                </p>
+              )}
+            </div>
           </div>
-
-          <Keyboard
-            onKeyPress={handleVirtualKey}
-            letterStatus={letterStatus}
-            className="fade-in-up"
-            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.55s", "--fade-distance": "12px" }}
-          />
-
-          <div className="wordle-actions fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.65s", "--fade-distance": "10px" }}>
-            <button
-              onClick={submitGuess}
-              className="cosmic-pill wordle-action"
-              type="button"
-            >
-              Submit Guess
-            </button>
-            <button
-              onClick={removeLetter}
-              className="cosmic-pill wordle-action"
-              type="button"
-            >
-              Delete Letter
-            </button>
-            <button onClick={startNewGame} className="cosmic-pill wordle-action" type="button">
-              New Game
-            </button>
-          </div>
-
-          {message && (
-            <p
-              className="wordle-message fade-in-up"
-              role="status"
-              aria-live="polite"
-              style={{ "--fade-duration": "0.5s", "--fade-distance": "10px" }}
-            >
-              {message}
-            </p>
-          )}
         </div>
         <GameFooter
           gameName="Wordle"

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
@@ -171,22 +170,26 @@ const isBoardStuck = (board) => {
 };
 
 const TILE_STYLES = {
-  0: "bg-white/5 text-transparent border border-white/5",
-  2: "bg-indigo-500/30 text-indigo-100 border border-indigo-200/30",
-  4: "bg-fuchsia-500/30 text-fuchsia-100 border border-fuchsia-200/30",
-  8: "bg-emerald-500/40 text-emerald-50 border border-emerald-200/30",
-  16: "bg-cyan-500/40 text-cyan-50 border border-cyan-200/30",
-  32: "bg-sky-500/50 text-sky-50 border border-sky-200/30",
-  64: "bg-amber-500/60 text-white border border-amber-200/30",
-  128: "bg-rose-500/70 text-white text-2xl border border-rose-200/40",
-  256: "bg-purple-500/70 text-white text-2xl border border-purple-200/40",
-  512: "bg-violet-500/80 text-white text-2xl border border-violet-200/40",
-  1024: "bg-teal-500/80 text-white text-xl border border-teal-200/40",
-  2048: "bg-lime-400/80 text-slate-900 text-xl border border-lime-200/60",
+  0: "bg-[#cdc1b4] text-transparent border border-[#bbada0]",
+  2: "bg-[#eee4da] text-[#776e65]",
+  4: "bg-[#ede0c8] text-[#776e65]",
+  8: "bg-[#f2b179] text-white",
+  16: "bg-[#f59563] text-white",
+  32: "bg-[#f67c5f] text-white",
+  64: "bg-[#f65e3b] text-white",
+  128: "bg-[#edcf72] text-white text-2xl",
+  256: "bg-[#edcc61] text-white text-2xl",
+  512: "bg-[#edc850] text-white text-2xl",
+  1024: "bg-[#edc53f] text-white text-xl",
+  2048: "bg-[#edc22e] text-white text-xl",
 };
 
-const getTileClasses = (value) =>
-  `${TILE_STYLES[value] ?? "bg-lime-500/80 text-slate-900 text-xl border border-lime-200/60"} rounded-xl font-bold flex items-center justify-center transition-all duration-200 shadow-[0_12px_30px_rgba(79,70,229,0.35)] select-none backdrop-blur-sm`;
+const getTileClasses = (value) => {
+  const baseClasses =
+    "flex h-20 w-20 select-none items-center justify-center rounded-lg font-bold text-2xl transition-colors sm:h-24 sm:w-24 sm:text-3xl";
+  const style = TILE_STYLES[value] ?? "bg-[#3c3a32] text-white text-xl";
+  return `${baseClasses} ${style}`;
+};
 
 const formatBoardKey = (rowIndex, columnIndex) => `${rowIndex}-${columnIndex}`;
 
@@ -199,7 +202,7 @@ const DirectionButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`cosmic-pill px-4 py-3 text-lg font-semibold uppercase tracking-[0.3em] text-white/80 transition ${className}`}
+    className={`rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700 ${className}`}
     aria-label={ariaLabel ?? label}
   >
     {label}
@@ -339,109 +342,119 @@ export default function Two048Game() {
   );
 
   return (
-    <div className="cosmic-page">
-      <FloatingBubbles count={14} area="full" zIndex={1} />
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <div className="cosmic-panel flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-12 text-center sm:px-10 lg:max-w-3xl">
-          <header className="space-y-3">
-            <h1 className="cosmic-heading text-4xl font-bold sm:text-5xl">2048</h1>
-            <p className="text-sm uppercase tracking-[0.5em] text-white/60">
-              Fuse the tiles, chase the light
-            </p>
-            <p className="text-base text-white/75 sm:text-lg">
-              Merge matching tiles to craft luminous numbers. Use your keyboard, swipe gestures, or the starlit controls below.
-            </p>
-          </header>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <div className="cosmic-card px-6 py-4">
-            <div className="text-xs uppercase tracking-[0.4em] text-white/60">Score</div>
-            <div className="mt-2 text-3xl font-bold text-white">{score}</div>
-          </div>
-          <div className="cosmic-card px-6 py-4">
-            <div className="text-xs uppercase tracking-[0.4em] text-white/60">Best</div>
-            <div className="mt-2 text-3xl font-bold text-white">{bestScore}</div>
-          </div>
-          <button
-            type="button"
-            onClick={startNewGame}
-            className="cosmic-pill px-6 py-3 text-sm font-semibold uppercase tracking-[0.4em] text-white/80"
-          >
-            New Game
-          </button>
-        </div>
-
-        <div
-          className="relative"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="grid grid-cols-4 gap-4 rounded-3xl border border-white/10 bg-slate-900/40 p-5 shadow-[0_25px_60px_rgba(79,70,229,0.35)] backdrop-blur-xl touch-none">
-            {boardTiles}
-          </div>
-
-          {(hasWon || isGameOver) && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-slate-950/80 p-6 text-center backdrop-blur">
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-3xl font-bold text-white">
-                  {hasWon ? "You made it to 2048!" : "No more moves!"}
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1 text-left">
+                <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">2048</h1>
+                <p className="text-sm text-slate-600">
+                  Slide the tiles with your arrow keys or swipe gestures to merge matching numbers. Hit 2048 to win and keep going to beat your best score.
                 </p>
-                <p className="text-sm text-white/70">
-                  {hasWon
-                    ? "Keep going to push your score even higher, or reset the cosmic board."
-                    : "Start a fresh grid and aim for a new personal best."}
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {hasWon && (
-                    <button
-                      type="button"
-                      onClick={() => setHasWon(false)}
-                      className="cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
-                    >
-                      Keep Playing
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={startNewGame}
-                    className="cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
-                  >
-                    New Game
-                  </button>
+              </div>
+              <div className="flex flex-wrap justify-end gap-3 text-center">
+                <div className="min-w-[120px] rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
+                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Score</p>
+                  <p className="text-2xl font-semibold text-slate-900">{score.toLocaleString()}</p>
+                </div>
+                <div className="min-w-[120px] rounded-md border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 shadow-sm">
+                  <p className="text-[0.65rem] uppercase tracking-[0.35em] text-slate-500">Best</p>
+                  <p className="text-2xl font-semibold text-slate-900">{bestScore.toLocaleString()}</p>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={startNewGame}
+                className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
+              >
+                New Game
+              </button>
+              {hasWon && (
+                <span className="inline-flex items-center rounded-full border border-transparent bg-gradient-to-r from-amber-100 via-orange-100 to-rose-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm">
+                  Keep pushing!
+                </span>
+              )}
+            </div>
+          </div>
 
-          <div className="w-full max-w-sm">
-            <div className="grid grid-cols-3 gap-4">
-              <div />
-              <DirectionButton
-                label="↑"
-                ariaLabel="Move tiles up"
-                onClick={() => handleMove("ArrowUp")}
-              />
-              <div />
-              <DirectionButton
-                label="←"
-                ariaLabel="Move tiles left"
-                onClick={() => handleMove("ArrowLeft")}
-              />
-              <DirectionButton
-                label="↓"
-                ariaLabel="Move tiles down"
-                onClick={() => handleMove("ArrowDown")}
-                className="col-start-2"
-              />
-              <DirectionButton
-                label="→"
-                ariaLabel="Move tiles right"
-                onClick={() => handleMove("ArrowRight")}
-                className="col-start-3"
-              />
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col items-center gap-6">
+              <div
+                className="relative"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div className="rounded-3xl bg-gradient-to-br from-[#cdc1b4] via-[#d8cbbd] to-[#ece0d1] p-4 shadow-inner">
+                  <div className="grid grid-cols-4 gap-3">
+                    {boardTiles}
+                  </div>
+                </div>
+
+                {(hasWon || isGameOver) && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-white/95 via-sky-50/80 to-emerald-50/60 p-6 text-center shadow-inner">
+                    <p className="text-2xl font-semibold text-slate-900">
+                      {hasWon ? "You made it to 2048!" : "No more moves"}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {hasWon
+                        ? "Try for a new personal best or reset for a fresh challenge."
+                        : "Start a new game and aim for the 2048 tile again."}
+                    </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      {hasWon && (
+                        <button
+                          type="button"
+                          onClick={() => setHasWon(false)}
+                          className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
+                        >
+                          Keep Playing
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={startNewGame}
+                        className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
+                      >
+                        New Game
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full max-w-sm">
+                <div className="grid grid-cols-3 gap-4">
+                  <div />
+                  <DirectionButton
+                    label="↑"
+                    ariaLabel="Move tiles up"
+                    onClick={() => handleMove("ArrowUp")}
+                  />
+                  <div />
+                  <DirectionButton
+                    label="←"
+                    ariaLabel="Move tiles left"
+                    onClick={() => handleMove("ArrowLeft")}
+                  />
+                  <DirectionButton
+                    label="↓"
+                    ariaLabel="Move tiles down"
+                    onClick={() => handleMove("ArrowDown")}
+                    className="col-start-2"
+                  />
+                  <DirectionButton
+                    label="→"
+                    ariaLabel="Move tiles right"
+                    onClick={() => handleMove("ArrowRight")}
+                    className="col-start-3"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

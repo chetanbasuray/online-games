@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
@@ -64,12 +63,6 @@ const removeNumbers = (board, difficulty) => {
   return puzzle;
 };
 
-// Color palette
-const blockColors = [
-  ["rgba(129, 140, 248, 0.28)", "rgba(244, 114, 182, 0.28)", "rgba(45, 212, 191, 0.28)"],
-  ["rgba(244, 63, 94, 0.28)", "rgba(14, 165, 233, 0.28)", "rgba(250, 204, 21, 0.28)"],
-  ["rgba(168, 85, 247, 0.28)", "rgba(56, 189, 248, 0.28)", "rgba(248, 113, 113, 0.28)"],
-];
 const showSupportWidget = isGamePlayable("/sudoku");
 
 export default function SudokuPage() {
@@ -310,109 +303,125 @@ export default function SudokuPage() {
     [activeCell, updateCellValue]
   );
 
-  const getBlockColor = (r, c) => blockColors[Math.floor(r / 3)][Math.floor(c / 3)];
   const getCellGlowStyle = (r, c) => {
     const key = `${r}-${c}`;
-    if (tempGlow[key]) return "brightness-125 scale-105 transition-all duration-500";
+    if (tempGlow[key]) return "bg-amber-100/70 transition-colors duration-500";
     return "";
   };
 
+  const getBorderClasses = (r, c) => {
+    const borders = [];
+    if (r % 3 === 0) borders.push("border-t-2 border-t-slate-500");
+    if (c % 3 === 0) borders.push("border-l-2 border-l-slate-500");
+    if (r === 8) borders.push("border-b-2 border-b-slate-500");
+    if (c === 8) borders.push("border-r-2 border-r-slate-500");
+    return borders.join(" ");
+  };
+
+  const getCellClassName = (r, c, isGiven, isActive) => {
+    const baseClasses = [
+      "flex h-10 w-10 items-center justify-center border border-slate-300/70 text-center text-base font-semibold sm:h-12 sm:w-12 sm:text-lg",
+      "focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-white",
+      isGiven ? "bg-slate-50 text-slate-900" : "bg-white text-blue-700",
+      getCellGlowStyle(r, c),
+      getBorderClasses(r, c),
+    ];
+
+    if (isActive) {
+      baseClasses.push("ring-2 ring-blue-500");
+    }
+
+    return baseClasses.filter(Boolean).join(" ");
+  };
+
   return (
-    <div className="cosmic-page">
-      <FloatingBubbles count={12} area="full" zIndex={1} />
+    <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <div
-          className="cosmic-panel fade-in-up flex w-full max-w-4xl flex-col gap-6 px-5 py-8 text-center sm:px-8 lg:max-w-3xl"
-          style={{ "--fade-duration": "0.8s", "--fade-distance": "20px" }}
-        >
-          <div className="space-y-2">
-            <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Sudoku</h1>
-            <p className="text-xs uppercase tracking-[0.5em] text-white/60">
-              Sleek logic for focused play
-            </p>
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-1">
+                <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Sudoku</h1>
+                <p className="text-sm text-slate-600">
+                  Fill every row, column, and 3×3 box with the digits 1 through 9.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.35em] text-slate-600">
+                {["easy", "medium", "hard", "evil"].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDifficulty(d)}
+                    className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors shadow-sm ${
+                      difficulty === d
+                        ? "border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 text-blue-800"
+                        : "border-slate-300/80 bg-white/80 text-slate-600 hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
+                    }`}
+                    aria-pressed={difficulty === d}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-          {["easy", "medium", "hard", "evil"].map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDifficulty(d)}
-              className={`cosmic-pill px-4 py-1.5 font-semibold uppercase tracking-[0.4em] text-white/70 transition-all ${
-                difficulty === d
-                  ? "bg-white/25 text-white shadow-[0_0_18px_rgba(255,255,255,0.22)]"
-                  : "hover:bg-white/10"
-              }`}
-              aria-pressed={difficulty === d}
-            >
-              {d}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full rounded-2xl border border-white/10 bg-slate-950/50 p-3 shadow-inner shadow-indigo-500/10 sm:p-4">
-          <div className="grid grid-cols-9 gap-1 sm:gap-1.5">
-            {userBoard.map((row, r) =>
-              row.map((num, c) => {
-                const isGiven = puzzle[r][c] !== 0;
-                const blockColor = getBlockColor(r, c);
-                const glow = getCellGlowStyle(r, c);
-                const isActive = activeCell && activeCell[0] === r && activeCell[1] === c;
-                return (
-                  <input
-                    key={`${r}-${c}`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[1-9]*"
-                    maxLength={1}
-                    data-cell={`${r}-${c}`}
-                    value={num || ""}
-                    readOnly={isGiven}
-                    onFocus={() => setActiveCell(isGiven ? null : [r, c])}
-                    onChange={(e) => handleCellChange(r, c, e.target.value)}
-                    className={`${glow} ${
-                      isActive ? "ring-2 ring-offset-2 ring-offset-slate-900/60 ring-violet-400" : ""
-                    } flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 text-center text-base font-semibold text-white shadow-[0_6px_16px_rgba(14,116,144,0.12)] transition focus:border-white/40 focus:bg-white/10 focus:shadow-[0_0_18px_rgba(168,85,247,0.32)] sm:h-12 sm:w-12 sm:text-lg`}
-                    style={{
-                      background: blockColor,
-                      color: isGiven ? "rgba(248, 250, 252, 0.85)" : "#fdf4ff",
-                      fontWeight: isGiven ? "600" : "700",
-                    }}
-                    aria-label={`Row ${r + 1}, Column ${c + 1}`}
-                  />
-                );
-              })
-            )}
-          </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/60 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-6">
+            <div className="mx-auto w-fit">
+              <div className="grid grid-cols-9">
+                {userBoard.map((row, r) =>
+                  row.map((num, c) => {
+                    const isGiven = puzzle[r][c] !== 0;
+                    const isActive = activeCell && activeCell[0] === r && activeCell[1] === c;
+                    return (
+                      <input
+                        key={`${r}-${c}`}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[1-9]*"
+                        maxLength={1}
+                        data-cell={`${r}-${c}`}
+                        value={num || ""}
+                        readOnly={isGiven}
+                        onFocus={() => setActiveCell(isGiven ? null : [r, c])}
+                        onChange={(e) => handleCellChange(r, c, e.target.value)}
+                        className={getCellClassName(r, c, isGiven, isActive)}
+                        aria-label={`Row ${r + 1}, Column ${c + 1}`}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => handlePadInput(num)}
+                  className="h-10 min-w-[2.75rem] rounded-md border border-slate-300/70 bg-gradient-to-r from-white via-blue-50 to-sky-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!activeCell}
+                  aria-disabled={!activeCell}
+                >
+                  {num}
+                </button>
+              ))}
               <button
-                key={num}
                 type="button"
-                onClick={() => handlePadInput(num)}
-                className="cosmic-pill h-10 min-w-[2.5rem] px-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={() => handlePadInput(0)}
+                className="h-10 min-w-[2.75rem] rounded-md border border-slate-300/70 bg-gradient-to-r from-white via-rose-50 to-amber-50 px-3 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={!activeCell}
                 aria-disabled={!activeCell}
               >
-                {num}
+                Clear
               </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => handlePadInput(0)}
-              className="cosmic-pill h-10 min-w-[2.5rem] px-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={!activeCell}
-              aria-disabled={!activeCell}
-            >
-              Clear
-            </button>
+            </div>
           </div>
-        </div>
 
           {message && (
-            <p className="fade-in text-sm font-semibold text-white/80" style={{ "--fade-duration": "0.5s" }}>
+            <p className="text-center text-sm font-semibold text-slate-600" aria-live="polite" role="status">
               {message}
             </p>
           )}
@@ -425,6 +434,7 @@ export default function SudokuPage() {
             label: "the Sudoku article on Wikipedia",
           }}
           className="w-full max-w-md lg:max-w-xs lg:self-start"
+          variant="classic"
         />
       </div>
     </div>

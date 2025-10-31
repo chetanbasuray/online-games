@@ -227,6 +227,11 @@ body {
   transform: translateY(-2px);
 }
 
+.cosmic-key[data-wide="true"] {
+  min-width: 3.1rem;
+  padding-inline: 1.35rem;
+}
+
 .cosmic-key--correct {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(74, 222, 128, 0.85));
   border-color: rgba(167, 243, 208, 0.7);
@@ -256,6 +261,126 @@ body {
 .tile--flipped {
   animation: tileFlip 0.65s ease forwards var(--flip-delay, 0s),
     tileReveal 0.4s ease forwards calc(var(--flip-delay, 0s) + 0.65s);
+}
+
+.wordle-panel {
+  width: min(100%, 44rem);
+}
+
+.wordle-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  text-align: center;
+}
+
+.wordle-board {
+  --wordle-tile-size: 3.4rem;
+  --wordle-tile-gap: 0.75rem;
+  display: grid;
+  gap: var(--wordle-row-gap, 0.75rem);
+  width: min(100%, 28rem);
+  justify-items: center;
+}
+
+.wordle-row {
+  display: grid;
+  grid-template-columns: repeat(5, var(--wordle-tile-size));
+  gap: var(--wordle-tile-gap);
+  width: 100%;
+  justify-content: center;
+}
+
+.wordle-tile {
+  width: var(--wordle-tile-size);
+  height: var(--wordle-tile-size);
+  font-size: clamp(1.35rem, 4vw, 2.1rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.wordle-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  align-items: center;
+}
+
+.wordle-keyboard-row {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.wordle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.wordle-action {
+  min-width: 9rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.wordle-message {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+@media (max-width: 768px) {
+  .wordle-board {
+    --wordle-tile-size: clamp(2.6rem, 16vw, 3.2rem);
+    --wordle-tile-gap: clamp(0.35rem, 1.8vw, 0.6rem);
+  }
+
+  .wordle-actions {
+    gap: 0.6rem;
+  }
+
+  .wordle-action {
+    flex: 1 1 45%;
+    min-width: 7.5rem;
+    padding: 0.85rem 1rem;
+    letter-spacing: 0.18em;
+  }
+
+  .wordle-message {
+    font-size: 0.95rem;
+  }
+
+  .cosmic-key {
+    flex: 1 1 0%;
+    min-width: auto;
+    padding: 0.75rem 0.5rem;
+    letter-spacing: 0.18em;
+    font-size: clamp(0.85rem, 3.3vw, 1rem);
+  }
+
+  .cosmic-key[data-wide="true"] {
+    flex: 1.35 1 0%;
+    padding-inline: 0.6rem;
+  }
+
+  .wordle-keyboard {
+    gap: clamp(0.45rem, 2vw, 0.65rem);
+  }
+
+  .wordle-keyboard-row {
+    gap: clamp(0.4rem, 1.8vw, 0.6rem);
+  }
 }
 
 .sudoku-cell {

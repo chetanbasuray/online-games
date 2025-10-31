@@ -87,6 +87,19 @@ export default function WordlePage() {
     }
   };
 
+  const handleVirtualKey = (key) => {
+    if (isWin) return;
+    if (key === "ENTER") {
+      submitGuess();
+      return;
+    }
+    if (key === "DELETE") {
+      removeLetter();
+      return;
+    }
+    addLetter(key);
+  };
+
   const submitGuess = async () => {
     const guessUpper = currentGuess.toUpperCase();
     if (guessUpper.length !== WORD_LENGTH) return;
@@ -138,29 +151,28 @@ export default function WordlePage() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
         <div
-          className="cosmic-panel scale-in flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12 lg:max-w-3xl"
+          className="wordle-panel cosmic-panel scale-in flex w-full max-w-3xl flex-col items-center gap-8 px-5 py-9 sm:px-8 sm:py-12"
           style={{ "--scale-from": "0.94", "--scale-duration": "0.7s" }}
         >
-          <h1
-            className="cosmic-heading text-4xl font-bold fade-in-up"
-            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.2s", "--fade-distance": "20px" }}
-          >
-            Wordle
-          </h1>
-
-          <p className="fade-in text-center text-sm uppercase tracking-[0.6em] text-white/60" style={{ "--fade-delay": "0.3s" }}>
-            Decode the daily word in six stellar guesses
-          </p>
+          <div className="wordle-heading fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.2s", "--fade-distance": "20px" }}>
+            <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Wordle</h1>
+            <p className="text-center text-xs uppercase tracking-[0.5em] text-white/60 sm:text-sm">
+              Decode the daily word in six stellar guesses
+            </p>
+          </div>
 
           <div
-            className="fade-in-up grid grid-rows-6 gap-3"
-            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.4s", "--fade-distance": "10px" }}
+            className="wordle-board fade-in-up"
+            role="grid"
+            aria-label="Wordle board"
+            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.35s", "--fade-distance": "10px" }}
           >
             {Array.from({ length: MAX_GUESSES }).map((_, row) => {
               const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
               const isCurrentRow = row === guesses.length;
+
               return (
-                <div key={row} className="grid-row flex flex-wrap justify-center gap-3">
+                <div key={row} className="wordle-row" role="row">
                   {Array.from({ length: WORD_LENGTH }).map((_, col) => {
                     const letter = guess[col] || "";
                     const bgColor =
@@ -169,7 +181,7 @@ export default function WordlePage() {
                         : "bg-slate-900/60 border border-white/10 text-white/80";
                     const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
                     const tileClasses = [
-                      "tile flex h-14 w-14 items-center justify-center rounded-lg text-2xl font-bold sm:h-12 sm:w-12",
+                      "tile wordle-tile flex items-center justify-center rounded-lg font-bold",
                       bgColor,
                       flipped ? "tile--flipped" : "",
                     ]
@@ -177,7 +189,13 @@ export default function WordlePage() {
                       .join(" ");
 
                     return (
-                      <div key={col} className={tileClasses} style={{ "--flip-delay": `${col * 0.3}s` }}>
+                      <div
+                        key={col}
+                        className={tileClasses}
+                        style={{ "--flip-delay": `${col * 0.3}s` }}
+                        role="gridcell"
+                        aria-label={letter ? `Letter ${letter}` : "Empty"}
+                      >
                         {letter}
                       </div>
                     );
@@ -187,37 +205,38 @@ export default function WordlePage() {
             })}
           </div>
 
-          <Keyboard guessedLetters={Object.keys(letterStatus)} onKeyPress={addLetter} letterStatus={letterStatus} />
+          <Keyboard
+            onKeyPress={handleVirtualKey}
+            letterStatus={letterStatus}
+            className="fade-in-up"
+            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.55s", "--fade-distance": "12px" }}
+          />
 
-          <div
-            className="fade-in-up flex flex-wrap justify-center gap-3"
-            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.6s", "--fade-distance": "10px" }}
-          >
+          <div className="wordle-actions fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.65s", "--fade-distance": "10px" }}>
             <button
               onClick={submitGuess}
-              className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+              className="cosmic-pill wordle-action"
+              type="button"
             >
-              Enter
+              Submit Guess
             </button>
             <button
               onClick={removeLetter}
-              className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+              className="cosmic-pill wordle-action"
+              type="button"
             >
-              Backspace
+              Delete Letter
             </button>
-            {isWin && (
-              <button
-                onClick={startNewGame}
-                className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
-              >
-                New Game
-              </button>
-            )}
+            <button onClick={startNewGame} className="cosmic-pill wordle-action" type="button">
+              New Game
+            </button>
           </div>
 
           {message && (
             <p
-              className="fade-in-up text-base font-semibold text-white/80"
+              className="wordle-message fade-in-up"
+              role="status"
+              aria-live="polite"
               style={{ "--fade-duration": "0.5s", "--fade-distance": "10px" }}
             >
               {message}

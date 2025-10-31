@@ -1,11 +1,9 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import FloatingBubbles from "../components/FloatingBubbles";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
-import * as Tone from "tone";
-import confetti from "canvas-confetti";
 
 // Sudoku Generator
 const generateFullSolution = () => {
@@ -89,10 +87,11 @@ export default function SudokuPage() {
   const [tempGlow, setTempGlow] = useState({}); // { "r-c": true }
 
   // Tone.js sounds
-  const [rowColSound, setRowColSound] = useState(null);
-  const [blockSound, setBlockSound] = useState(null);
-  const [combinedSound, setCombinedSound] = useState(null);
-  const [completeSound, setCompleteSound] = useState(null);
+  const rowColSoundRef = useRef(null);
+  const blockSoundRef = useRef(null);
+  const combinedSoundRef = useRef(null);
+  const completeSoundRef = useRef(null);
+  const confettiRef = useRef(null);
 
   useEffect(() => {
     const full = generateFullSolution();
@@ -109,90 +108,144 @@ export default function SudokuPage() {
   }, [difficulty]);
 
   useEffect(() => {
-    setRowColSound(new Tone.Synth().toDestination());
-    setBlockSound(new Tone.MembraneSynth().toDestination());
-    setCombinedSound(new Tone.FMSynth().toDestination());
-    setCompleteSound(new Tone.MembraneSynth().toDestination());
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    const loadEffects = async () => {
+      try {
+        const [{ Synth, MembraneSynth, FMSynth }, confettiModule] = await Promise.all([
+          import("tone"),
+          import("canvas-confetti"),
+        ]);
+
+        if (cancelled) return;
+
+        rowColSoundRef.current = new Synth().toDestination();
+        blockSoundRef.current = new MembraneSynth().toDestination();
+        combinedSoundRef.current = new FMSynth().toDestination();
+        completeSoundRef.current = new MembraneSynth().toDestination();
+        confettiRef.current = confettiModule.default;
+      } catch {
+        // If audio libraries fail to load we can still play without sound/celebrations.
+        rowColSoundRef.current = null;
+        blockSoundRef.current = null;
+        combinedSoundRef.current = null;
+        completeSoundRef.current = null;
+        confettiRef.current = null;
+      }
+    };
+
+    const scheduleLoad = () => {
+      void loadEffects();
+    };
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(scheduleLoad);
+    } else {
+      window.setTimeout(scheduleLoad, 0);
+    }
+
+    return () => {
+      cancelled = true;
+      rowColSoundRef.current?.dispose?.();
+      blockSoundRef.current?.dispose?.();
+      combinedSoundRef.current?.dispose?.();
+      completeSoundRef.current?.dispose?.();
+      rowColSoundRef.current = null;
+      blockSoundRef.current = null;
+      combinedSoundRef.current = null;
+      completeSoundRef.current = null;
+      confettiRef.current = null;
+    };
   }, []);
 
   const checkCompletion = useCallback(
     (board, row, col) => {
-      let rowDone = false, colDone = false, blockDone = false;
+      const rowSound = rowColSoundRef.current;
+      const blockTone = blockSoundRef.current;
+      const comboSound = combinedSoundRef.current;
+      const finishSound = completeSoundRef.current;
+      const confettiInstance = confettiRef.current;
+
+      let rowDone = false;
+      let colDone = false;
+      let blockDone = false;
 
       // row
       if (board[row].every(n => n !== 0) && board[row].every((n, i) => n === solution[row][i])) {
         if (!completedRows.includes(row)) {
-        rowDone = true;
-        setCompletedRows(prev => [...prev, row]);
+          rowDone = true;
+          setCompletedRows(prev => [...prev, row]);
+        }
       }
-    }
 
-    // column
-    const colVals = board.map(r => r[col]);
-    const solutionCol = solution.map(r => r[col]);
-    if (colVals.every(n => n !== 0) && colVals.every((n, i) => n === solutionCol[i])) {
-      if (!completedCols.includes(col)) {
-        colDone = true;
-        setCompletedCols(prev => [...prev, col]);
+      // column
+      const colVals = board.map(r => r[col]);
+      const solutionCol = solution.map(r => r[col]);
+      if (colVals.every(n => n !== 0) && colVals.every((n, i) => n === solutionCol[i])) {
+        if (!completedCols.includes(col)) {
+          colDone = true;
+          setCompletedCols(prev => [...prev, col]);
+        }
       }
-    }
 
-    // block
-    const startRow = Math.floor(row / 3) * 3;
-    const startCol = Math.floor(col / 3) * 3;
-    const blockVals = [];
-    const solutionBlock = [];
-    for (let r = startRow; r < startRow + 3; r++) {
-      for (let c = startCol; c < startCol + 3; c++) {
-        blockVals.push(board[r][c]);
-        solutionBlock.push(solution[r][c]);
+      // block
+      const startRow = Math.floor(row / 3) * 3;
+      const startCol = Math.floor(col / 3) * 3;
+      const blockVals = [];
+      const solutionBlock = [];
+      for (let r = startRow; r < startRow + 3; r++) {
+        for (let c = startCol; c < startCol + 3; c++) {
+          blockVals.push(board[r][c]);
+          solutionBlock.push(solution[r][c]);
+        }
       }
-    }
-    const blockKey = `${startRow}-${startCol}`;
-    if (blockVals.every(n => n !== 0) && blockVals.every((n, i) => n === solutionBlock[i])) {
-      if (!completedBlocks.includes(blockKey)) {
-        blockDone = true;
-        setCompletedBlocks(prev => [...prev, blockKey]);
+      const blockKey = `${startRow}-${startCol}`;
+      if (blockVals.every(n => n !== 0) && blockVals.every((n, i) => n === solutionBlock[i])) {
+        if (!completedBlocks.includes(blockKey)) {
+          blockDone = true;
+          setCompletedBlocks(prev => [...prev, blockKey]);
+        }
       }
-    }
 
-    // trigger temporary glow for affected cells
-    const temp = {};
-    for (let i = 0; i < 9; i++) {
-      if (rowDone) temp[`${row}-${i}`] = true;
-      if (colDone) temp[`${i}-${col}`] = true;
-    }
-    for (let r = startRow; r < startRow + 3; r++) {
-      for (let c = startCol; c < startCol + 3; c++) {
-        if (blockDone) temp[`${r}-${c}`] = true;
+      // trigger temporary glow for affected cells
+      const temp = {};
+      for (let i = 0; i < 9; i++) {
+        if (rowDone) temp[`${row}-${i}`] = true;
+        if (colDone) temp[`${i}-${col}`] = true;
       }
-    }
-    setTempGlow(temp);
-    setTimeout(() => setTempGlow({}), 800); // glow stops after 0.8s
+      for (let r = startRow; r < startRow + 3; r++) {
+        for (let c = startCol; c < startCol + 3; c++) {
+          if (blockDone) temp[`${r}-${c}`] = true;
+        }
+      }
+      setTempGlow(temp);
+      setTimeout(() => setTempGlow({}), 800); // glow stops after 0.8s
 
-    // Sounds and messages
-    if (rowDone && colDone && blockDone) {
-      if (combinedSound) combinedSound.triggerAttackRelease("C4", "8n");
-      setMessage("Row, Column & Block completed!");
-    } else if (rowDone && colDone) {
-      if (combinedSound) combinedSound.triggerAttackRelease("D4", "8n");
-      setMessage("Row & Column completed!");
-    } else if (rowDone) {
-      if (rowColSound) rowColSound.triggerAttackRelease("C4", "8n");
-      setMessage(`Row ${row + 1} completed!`);
-    } else if (colDone) {
-      if (rowColSound) rowColSound.triggerAttackRelease("D4", "8n");
-      setMessage(`Column ${col + 1} completed!`);
-    } else if (blockDone) {
-      if (blockSound) blockSound.triggerAttackRelease("E4", "8n");
-      setMessage(`Block completed!`);
-    }
-    setTimeout(() => setMessage(""), 2000);
+      // Sounds and messages
+      if (rowDone && colDone && blockDone) {
+        if (comboSound) comboSound.triggerAttackRelease("C4", "8n");
+        setMessage("Row, Column & Block completed!");
+      } else if (rowDone && colDone) {
+        if (comboSound) comboSound.triggerAttackRelease("D4", "8n");
+        setMessage("Row & Column completed!");
+      } else if (rowDone) {
+        if (rowSound) rowSound.triggerAttackRelease("C4", "8n");
+        setMessage(`Row ${row + 1} completed!`);
+      } else if (colDone) {
+        if (rowSound) rowSound.triggerAttackRelease("D4", "8n");
+        setMessage(`Column ${col + 1} completed!`);
+      } else if (blockDone) {
+        if (blockTone) blockTone.triggerAttackRelease("E4", "8n");
+        setMessage(`Block completed!`);
+      }
+      setTimeout(() => setMessage(""), 2000);
 
-    // full board
+      // full board
       if (board.flat().every((n, i) => n === solution.flat()[i])) {
-        if (completeSound) completeSound.triggerAttackRelease("C6", "1n");
-        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        if (finishSound) finishSound.triggerAttackRelease("C6", "1n");
+        confettiInstance?.({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
         setMessage("🎉 Sudoku Completed!");
       }
     },
@@ -201,10 +254,6 @@ export default function SudokuPage() {
       completedRows,
       completedCols,
       completedBlocks,
-      combinedSound,
-      rowColSound,
-      blockSound,
-      completeSound,
     ]
   );
 

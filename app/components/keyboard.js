@@ -3,11 +3,10 @@
 const ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["Z", "X", "C", "V", "B", "N", "M"],
+  ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
 ];
 
-export default function Keyboard({ onKeyPress, letterStatus = {} }) {
-
+export default function Keyboard({ onKeyPress, letterStatus = {}, className = "", style }) {
   const getKeyColor = (letter) => {
     const status = letterStatus[letter];
     switch (status) {
@@ -22,20 +21,46 @@ export default function Keyboard({ onKeyPress, letterStatus = {} }) {
     }
   };
 
+  const handlePress = (value) => {
+    if (typeof onKeyPress === "function") {
+      onKeyPress(value);
+    }
+  };
+
+  const getLabel = (key) => {
+    if (key === "DELETE") return "⌫";
+    if (key === "ENTER") return "Enter";
+    return key;
+  };
+
   return (
-    <div className="mt-4 flex flex-col items-center gap-2">
-      {ROWS.map((row, i) => (
-        <div key={i} className="flex gap-2">
-          {row.map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onKeyPress(key)}
-              className={`cosmic-key ${getKeyColor(key)}`}
-            >
-              {key}
-            </button>
-          ))}
+    <div className={`wordle-keyboard ${className}`.trim()} style={style}>
+      {ROWS.map((row, index) => (
+        <div key={index} className="wordle-keyboard-row">
+          {row.map((key) => {
+            const isWide = key === "ENTER" || key === "DELETE";
+            const statusClass = getKeyColor(key);
+            const label = getLabel(key);
+
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handlePress(key)}
+                className={`cosmic-key ${statusClass}`.trim()}
+                data-wide={isWide ? "true" : undefined}
+                aria-label={
+                  key === "DELETE"
+                    ? "Delete letter"
+                    : key === "ENTER"
+                    ? "Submit guess"
+                    : `Letter ${label}`
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       ))}
     </div>

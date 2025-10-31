@@ -201,6 +201,9 @@ body {
   opacity: 0.6;
   mix-blend-mode: screen;
   filter: blur(0.15vmin);
+  animation: bubbleFloat var(--bubble-duration, 8s) ease-in-out infinite;
+  animation-delay: var(--bubble-delay, 0s);
+  will-change: transform, opacity;
 }
 
 .cosmic-key {
@@ -222,6 +225,11 @@ body {
 .cosmic-key:hover {
   border-color: rgba(148, 163, 184, 0.45);
   transform: translateY(-2px);
+}
+
+.cosmic-key[data-wide="true"] {
+  min-width: 3.1rem;
+  padding-inline: 1.35rem;
 }
 
 .cosmic-key--correct {
@@ -246,7 +254,162 @@ body {
 
 .tile {
   transform-style: preserve-3d;
-  transition: transform 0.5s;
+  transition: transform 0.3s ease, background 0.3s ease, border 0.3s ease, color 0.3s ease;
+  will-change: transform;
+}
+
+.tile--flipped {
+  animation: tileFlip 0.65s ease forwards var(--flip-delay, 0s),
+    tileReveal 0.4s ease forwards calc(var(--flip-delay, 0s) + 0.65s);
+}
+
+.wordle-panel {
+  width: min(100%, 44rem);
+}
+
+.wordle-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  text-align: center;
+}
+
+.wordle-board {
+  --wordle-tile-size: 3.4rem;
+  --wordle-tile-gap: 0.75rem;
+  display: grid;
+  gap: var(--wordle-row-gap, 0.75rem);
+  width: min(100%, 28rem);
+  justify-items: center;
+}
+
+.wordle-row {
+  display: grid;
+  grid-template-columns: repeat(5, var(--wordle-tile-size));
+  gap: var(--wordle-tile-gap);
+  width: 100%;
+  justify-content: center;
+}
+
+.wordle-tile {
+  width: var(--wordle-tile-size);
+  height: var(--wordle-tile-size);
+  font-size: clamp(1.35rem, 4vw, 2.1rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.wordle-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  align-items: center;
+}
+
+.wordle-keyboard-row {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.wordle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.wordle-action {
+  min-width: 9rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.wordle-message {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+@media (max-width: 768px) {
+  .wordle-board {
+    --wordle-tile-size: clamp(2.6rem, 16vw, 3.2rem);
+    --wordle-tile-gap: clamp(0.35rem, 1.8vw, 0.6rem);
+  }
+
+  .wordle-actions {
+    gap: 0.6rem;
+  }
+
+  .wordle-action {
+    flex: 1 1 45%;
+    min-width: 7.5rem;
+    padding: 0.85rem 1rem;
+    letter-spacing: 0.18em;
+  }
+
+  .wordle-message {
+    font-size: 0.95rem;
+  }
+
+  .cosmic-key {
+    flex: 1 1 0%;
+    min-width: auto;
+    padding: 0.75rem 0.5rem;
+    letter-spacing: 0.18em;
+    font-size: clamp(0.85rem, 3.3vw, 1rem);
+  }
+
+  .cosmic-key[data-wide="true"] {
+    flex: 1.35 1 0%;
+    padding-inline: 0.6rem;
+  }
+
+  .wordle-keyboard {
+    gap: clamp(0.45rem, 2vw, 0.65rem);
+  }
+
+  .wordle-keyboard-row {
+    gap: clamp(0.4rem, 1.8vw, 0.6rem);
+  }
+}
+
+.sudoku-cell {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.sudoku-cell--highlight {
+  animation: sudokuCellHighlight 0.45s ease-in-out;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn var(--fade-duration, 0.7s) ease forwards;
+  animation-delay: var(--fade-delay, 0s);
+}
+
+.fade-in-up {
+  opacity: 0;
+  transform: translate3d(0, var(--fade-distance, 20px), 0);
+  animation: fadeInUp var(--fade-duration, 0.8s) ease forwards;
+  animation-delay: var(--fade-delay, 0s);
+}
+
+.scale-in {
+  opacity: 0;
+  transform: scale(var(--scale-from, 0.9));
+  animation: scaleIn var(--scale-duration, 0.7s) ease forwards;
+  animation-delay: var(--scale-delay, 0s);
 }
 
 .glow-correct {
@@ -266,6 +429,111 @@ body {
 
 .shake {
   animation: shake 0.3s ease-in-out;
+}
+
+@keyframes bubbleFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(5%, -18%, 0);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.55;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--fade-distance, 20px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(var(--scale-from, 0.9));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tileFlip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(-90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes tileReveal {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes sudokuCellHighlight {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(129, 140, 248, 0.3);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 18px rgba(129, 140, 248, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(129, 140, 248, 0.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .fade-in-up,
+  .scale-in,
+  .tile--flipped,
+  .sudoku-cell--highlight,
+  .cosmic-particle {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+  }
+
+  .fade-in,
+  .fade-in-up,
+  .scale-in {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes cosmicDrift {

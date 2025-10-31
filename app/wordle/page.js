@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import FloatingBubbles from "../components/FloatingBubbles";
 import Keyboard from "../components/keyboard";
 import GameFooter from "../components/GameFooter";
@@ -88,6 +87,19 @@ export default function WordlePage() {
     }
   };
 
+  const handleVirtualKey = (key) => {
+    if (isWin) return;
+    if (key === "ENTER") {
+      submitGuess();
+      return;
+    }
+    if (key === "DELETE") {
+      removeLetter();
+      return;
+    }
+    addLetter(key);
+  };
+
   const submitGuess = async () => {
     const guessUpper = currentGuess.toUpperCase();
     if (guessUpper.length !== WORD_LENGTH) return;
@@ -138,104 +150,99 @@ export default function WordlePage() {
       {showSupportWidget && <SupportWidget />}
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-4 py-12 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
-        <motion.div
-          initial={{ scale: 0.94, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="cosmic-panel flex w-full max-w-4xl flex-col items-center gap-8 px-8 py-12 lg:max-w-3xl"
+        <div
+          className="wordle-panel cosmic-panel scale-in flex w-full max-w-3xl flex-col items-center gap-8 px-5 py-9 sm:px-8 sm:py-12"
+          style={{ "--scale-from": "0.94", "--scale-duration": "0.7s" }}
         >
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="cosmic-heading text-4xl font-bold"
+          <div className="wordle-heading fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.2s", "--fade-distance": "20px" }}>
+            <h1 className="cosmic-heading text-3xl font-bold sm:text-4xl">Wordle</h1>
+            <p className="text-center text-xs uppercase tracking-[0.5em] text-white/60 sm:text-sm">
+              Decode the daily word in six stellar guesses
+            </p>
+          </div>
+
+          <div
+            className="wordle-board fade-in-up"
+            role="grid"
+            aria-label="Wordle board"
+            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.35s", "--fade-distance": "10px" }}
           >
-            Wordle
-          </motion.h1>
+            {Array.from({ length: MAX_GUESSES }).map((_, row) => {
+              const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
+              const isCurrentRow = row === guesses.length;
 
-        <p className="text-center text-sm uppercase tracking-[0.6em] text-white/60">
-          Decode the daily word in six stellar guesses
-        </p>
+              return (
+                <div key={row} className="wordle-row" role="row">
+                  {Array.from({ length: WORD_LENGTH }).map((_, col) => {
+                    const letter = guess[col] || "";
+                    const bgColor =
+                      !isCurrentRow && guess
+                        ? getTileColor(letter, col, guess)
+                        : "bg-slate-900/60 border border-white/10 text-white/80";
+                    const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
+                    const tileClasses = [
+                      "tile wordle-tile flex items-center justify-center rounded-lg font-bold",
+                      bgColor,
+                      flipped ? "tile--flipped" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="grid grid-rows-6 gap-3"
-        >
-          {Array.from({ length: MAX_GUESSES }).map((_, row) => {
-            const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
-            const isCurrentRow = row === guesses.length;
-            return (
-              <div key={row} className="grid-row flex flex-wrap justify-center gap-3">
-                {Array.from({ length: WORD_LENGTH }).map((_, col) => {
-                  const letter = guess[col] || "";
-                  const bgColor =
-                    !isCurrentRow && guess
-                      ? getTileColor(letter, col, guess)
-                      : "bg-slate-900/60 border border-white/10 text-white/80";
-                  const flipped = flippedTiles.some((t) => t.row === row && t.col === col);
+                    return (
+                      <div
+                        key={col}
+                        className={tileClasses}
+                        style={{ "--flip-delay": `${col * 0.3}s` }}
+                        role="gridcell"
+                        aria-label={letter ? `Letter ${letter}` : "Empty"}
+                      >
+                        {letter}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
 
-                  return (
-                    <motion.div
-                      key={col}
-                      className={`tile flex h-14 w-14 items-center justify-center rounded-lg text-2xl font-bold sm:h-12 sm:w-12 ${bgColor} ${
-                        flipped ? "flipped" : ""
-                      }`}
-                      style={{ transitionDelay: `${col * 300}ms` }}
-                      animate={!isCurrentRow && guess ? { scale: [1, 1.05, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {letter}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </motion.div>
+          <Keyboard
+            onKeyPress={handleVirtualKey}
+            letterStatus={letterStatus}
+            className="fade-in-up"
+            style={{ "--fade-duration": "0.8s", "--fade-delay": "0.55s", "--fade-distance": "12px" }}
+          />
 
-        <Keyboard guessedLetters={Object.keys(letterStatus)} onKeyPress={addLetter} letterStatus={letterStatus} />
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-3"
-        >
-          <button
-            onClick={submitGuess}
-            className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
-          >
-            Enter
-          </button>
-          <button
-            onClick={removeLetter}
-            className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
-          >
-            Backspace
-          </button>
-          {isWin && (
+          <div className="wordle-actions fade-in-up" style={{ "--fade-duration": "0.8s", "--fade-delay": "0.65s", "--fade-distance": "10px" }}>
             <button
-              onClick={startNewGame}
-              className="cosmic-pill px-5 py-2 text-sm font-semibold uppercase tracking-[0.25em] text-white/80"
+              onClick={submitGuess}
+              className="cosmic-pill wordle-action"
+              type="button"
             >
+              Submit Guess
+            </button>
+            <button
+              onClick={removeLetter}
+              className="cosmic-pill wordle-action"
+              type="button"
+            >
+              Delete Letter
+            </button>
+            <button onClick={startNewGame} className="cosmic-pill wordle-action" type="button">
               New Game
             </button>
-          )}
-        </motion.div>
+          </div>
 
-        {message && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-base font-semibold text-white/80"
-          >
-            {message}
-          </motion.p>
-        )}
-        </motion.div>
+          {message && (
+            <p
+              className="wordle-message fade-in-up"
+              role="status"
+              aria-live="polite"
+              style={{ "--fade-duration": "0.5s", "--fade-distance": "10px" }}
+            >
+              {message}
+            </p>
+          )}
+        </div>
         <GameFooter
           gameName="Wordle"
           creator="Josh Wardle"

@@ -6,7 +6,7 @@ A polished Next.js arcade that bundles bite-sized logic games in a neon-inspired
 
 - **Compact Sudoku board** with glowing feedback for completed rows, columns, and blocks.
 - **Daily Wordle** experience with celebratory animations for correct guesses.
-- **Reactive audiovisuals** powered by Framer Motion, Tone.js, and canvas-confetti for a futuristic vibe.
+- **Reactive audiovisuals** powered by handcrafted CSS animations, Tone.js, and canvas-confetti for a futuristic vibe.
 - **Responsive layout** that keeps the games playable on phones, tablets, and desktops.
 
 ## 🚀 Getting Started
@@ -29,7 +29,7 @@ Visit [http://localhost:3000](http://localhost:3000) to launch the arcade.
 
 - [Next.js](https://nextjs.org/) App Router
 - [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Framer Motion](https://www.framer.com/motion/) for page transitions
+- Custom CSS animations for page and component transitions
 - [Tone.js](https://tonejs.github.io/) and [canvas-confetti](https://www.kirilv.com/canvas-confetti/) for sound and celebration effects
 
 ## 🤝 Contributing

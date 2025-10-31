@@ -1,5 +1,3 @@
-"use client";
-import { motion } from "framer-motion";
 import { GAMES } from "./data/games";
 import FloatingBubbles from "./components/FloatingBubbles";
 import SupportWidget from "./components/SupportWidget";
@@ -13,11 +11,9 @@ export default function HomePage() {
       <FloatingBubbles count={9} area="full" zIndex={1} />
       {showSupportWidget && <SupportWidget />}
 
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="flex max-w-4xl flex-col items-center gap-6 text-center"
+      <div
+        className="fade-in-up flex max-w-4xl flex-col items-center gap-6 text-center"
+        style={{ "--fade-duration": "0.8s", "--fade-distance": "30px" }}
       >
         <span className="cosmic-pill px-5 py-2 text-xs uppercase tracking-[0.4em] text-white/70">
           Play instantly, no installs
@@ -28,22 +24,21 @@ export default function HomePage() {
         <p className="max-w-2xl text-lg text-white/80 sm:text-xl">
           Dive into a constellation of classic games reimagined with a modern, luminous interface. Switch between titles seamlessly and chase new high scores.
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.1 }}
-        className="relative z-10 grid w-full max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      <div
+        className="fade-in-up relative z-10 grid w-full max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        style={{ "--fade-duration": "1.1s", "--fade-distance": "40px" }}
       >
-        {GAMES.map((game) => (
+        {GAMES.map((game, index) => (
           <a
             key={game.path}
             href={game.comingSoon ? "#" : game.path}
-            className={`cosmic-card group flex h-full flex-col justify-between ${
+            className={`cosmic-card group flex h-full flex-col justify-between fade-in-up ${
               game.comingSoon ? "cursor-not-allowed opacity-70" : "hover:border-white/40"
             }`}
             title={game.comingSoon ? "Coming Soon" : game.name}
+            style={{ "--fade-delay": `${index * 0.06}s`, "--fade-distance": "20px" }}
           >
             <div className="space-y-4">
               <div className="flex items-start justify-between">
@@ -55,12 +50,9 @@ export default function HomePage() {
                     </span>
                   )}
                 </div>
-                <motion.span
-                  whileHover={{ rotate: 12 }}
-                  className="cosmic-pill px-3 py-1 text-xs uppercase tracking-widest text-white/80"
-                >
+                <span className="cosmic-pill px-3 py-1 text-xs uppercase tracking-widest text-white/80 transition-transform duration-200 group-hover:rotate-6">
                   Play
-                </motion.span>
+                </span>
               </div>
               <p className="text-sm text-white/60">
                 {game.description ?? "Sharpen your mind with a quick play session."}
@@ -73,7 +65,7 @@ export default function HomePage() {
             )}
           </a>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

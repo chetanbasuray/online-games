@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import CosmicBackground from "../components/CosmicBackground";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
@@ -147,6 +146,13 @@ export default function LexiTwistGame() {
     return checkpointData.coreWords.filter((word) => !foundSet.has(word)).length;
   }, [checkpointData]);
 
+  const primaryPillClasses =
+    "inline-flex items-center justify-center rounded-full border border-transparent bg-gradient-to-r from-sky-100 via-blue-100 to-emerald-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-800 shadow-sm transition hover:brightness-110";
+  const subtlePillClasses =
+    "inline-flex items-center justify-center rounded-full border border-slate-300/70 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700";
+  const disabledPillClasses =
+    "inline-flex items-center justify-center rounded-full border border-slate-200/70 bg-slate-100/80 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 shadow-sm";
+
   const targetReached = roundScore >= activeTargetScore;
   const progress = Math.min(
     100,
@@ -195,11 +201,7 @@ export default function LexiTwistGame() {
     const loadDictionary = async () => {
       try {
         setDictionaryStatus("loading");
-        const loader = new Function(
-          "specifier",
-          "return import(specifier);",
-        );
-        const module = await loader("word-list-english");
+        const module = await import("word-list-english");
         if (cancelled) return;
         const normalized = normalizeWords(module);
         if (normalized.length === 0) {
@@ -613,28 +615,25 @@ export default function LexiTwistGame() {
   }, [handleBackspace, handleClear, handleLetter, handleSubmit, letterMap, playMiss]);
 
   return (
-    <div className="cosmic-body">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-emerald-50 px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
-      <CosmicBackground />
-      <div className="cosmic-page px-4 pb-16 pt-20">
-        <div className="cosmic-panel relative w-full max-w-5xl overflow-hidden px-6 py-8 text-white shadow-[0_28px_75px_rgba(2,6,23,0.55)] sm:px-10 sm:py-12">
-          <div className="absolute inset-x-12 top-10 h-1 rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-300 opacity-60" />
-          <div className="relative z-10 flex flex-col items-center gap-10">
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-start lg:justify-center lg:gap-14">
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
             <header className="flex flex-col items-center gap-4 text-center">
-              <span className="cosmic-pill text-xs font-semibold uppercase tracking-[0.45em] text-white/70">
+              <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-white/80 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm">
                 Round {puzzleIndex + 1}/{PUZZLES.length} · {activeLevel.label} Mode
               </span>
-              <h1 className="cosmic-heading text-3xl font-semibold sm:text-4xl">
-                LexiTwist Challenge
-              </h1>
-              <p className="max-w-2xl text-sm text-white/70 sm:text-base">
-                Inspired by the classic Text Twist formula: combine the glowing letters to
-                discover every possible word, rack up points, and unlock endless rounds.
+              <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">LexiTwist Challenge</h1>
+              <p className="max-w-2xl text-sm text-slate-600 sm:text-base">
+                Inspired by the classic Text Twist formula: combine the letters to discover every possible word,
+                rack up points, and unlock endless rounds.
               </p>
             </header>
 
-            <div className="w-full max-w-3xl space-y-3">
-              <p className="text-center text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60 sm:text-left">
+            <div className="mt-6 space-y-3">
+              <p className="text-center text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 sm:text-left">
                 Choose Your Challenge
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -648,157 +647,125 @@ export default function LexiTwistGame() {
                       aria-pressed={isActive}
                       className={`lexitwist-level-option ${isActive ? "lexitwist-level-option--active" : ""}`}
                     >
-                      <span className="text-sm font-semibold tracking-[0.3em] uppercase text-white/80">
+                      <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-700">
                         {level.label}
                       </span>
-                      <span className="text-xs text-white/70">{level.description}</span>
-                      <span className="text-[0.6rem] font-medium uppercase tracking-[0.3em] text-white/50">
+                      <span className="text-xs text-slate-600">{level.description}</span>
+                      <span className="text-[0.6rem] font-medium uppercase tracking-[0.3em] text-slate-500">
                         Target ×{level.targetMultiplier.toFixed(2)} · Score ×{level.scoreMultiplier.toFixed(2)}
                       </span>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-center text-[0.6rem] text-white/50 sm:text-left">
+              <p className="text-center text-xs text-slate-500 sm:text-left">
                 {dictionaryStatus === "ready"
                   ? `Dictionary ready with ${dictionarySize.toLocaleString()} entries. Bonus finds earn extra multipliers.`
                   : dictionaryStatus === "loading"
-                  ? "Loading extended dictionary for extra bonus words..."
-                  : "Using the built-in fallback word list while the dictionary warms up."}
+                    ? "Loading extended dictionary for extra bonus words..."
+                    : "Using the built-in fallback word list while the dictionary warms up."}
               </p>
             </div>
+          </div>
 
-            <div className="grid w-full gap-4 sm:grid-cols-3">
-              <div className="cosmic-card space-y-2 text-center">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60">
-                  Round Score
-                </p>
-                <p className="text-2xl font-bold text-sky-100">
+          <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/70 p-4 text-center shadow-sm">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-500">Round Score</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
                   {roundScore}
-                  <span className="text-sm font-medium text-white/70">
-                    {" "}/ {activeTargetScore}
-                  </span>
+                  <span className="text-sm font-medium text-slate-500"> / {activeTargetScore}</span>
                 </p>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-200 transition-all"
+                    className="h-full rounded-full bg-gradient-to-r from-sky-400 via-emerald-400 to-amber-300 transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
 
-              <div className="cosmic-card space-y-2 text-center">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60">
-                  Total Score
-                </p>
-                <p className="text-2xl font-bold text-emerald-100">{totalScore}</p>
-                <p className="text-xs text-white/60">
-                  Every round adds to your running tally.
-                </p>
+              <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/80 to-violet-50/70 p-4 text-center shadow-sm">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-500">Total Score</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{totalScore}</p>
+                <p className="mt-2 text-xs text-slate-600">Every round adds to your running tally.</p>
               </div>
 
-              <div className="cosmic-card space-y-2 text-center">
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60">
-                  Words Discovered
-                </p>
-                <p className="text-2xl font-bold text-amber-100">
+              <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-amber-50/70 to-rose-50/60 p-4 text-center shadow-sm">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-500">Words Discovered</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
                   {coreWordCount}
-                  <span className="text-sm font-medium text-white/70">
-                    {" "}/ {puzzle.words.length}
-                  </span>
+                  <span className="text-sm font-medium text-slate-500"> / {puzzle.words.length}</span>
                 </p>
                 {bonusWordCount > 0 ? (
-                  <p className="text-xs font-semibold text-emerald-200/80">
-                    +{bonusWordCount} bonus dictionary finds
-                  </p>
+                  <p className="mt-2 text-xs font-semibold text-emerald-600">+{bonusWordCount} bonus dictionary finds</p>
                 ) : (
-                  <p className="text-xs text-white/60">Earn more by finding longer words.</p>
+                  <p className="mt-2 text-xs text-slate-600">Earn more by finding longer words.</p>
                 )}
               </div>
             </div>
+          </div>
 
-            <div
-              className={`relative w-full max-w-2xl rounded-3xl border border-white/10 bg-white/10 px-6 py-6 text-center shadow-[0_22px_55px_rgba(2,6,23,0.5)] backdrop-blur-xl transition ${feedback === "success" ? "lexitwist-success" : ""} ${feedback === "error" ? "lexitwist-error" : ""}`}
-            >
-              <p className="min-h-[1.25rem] text-sm font-medium text-white/80">{statusMessage}</p>
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <div className="flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-2xl border border-white/10 bg-slate-900/40 px-6 py-3 text-2xl font-semibold tracking-[0.35em] text-sky-100 shadow-inner">
-                  {currentInput || "\u2022\u2022\u2022"}
-                </div>
+          <div
+            className={`rounded-3xl border border-slate-200/70 bg-white/90 p-6 text-center shadow-[0_18px_45px_rgba(15,23,42,0.08)] transition sm:p-8 ${feedback === "success" ? "lexitwist-success" : ""} ${feedback === "error" ? "lexitwist-error" : ""}`}
+          >
+            <p className="min-h-[1.25rem] text-sm font-medium text-slate-600">{statusMessage}</p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <div className="flex min-h-[3rem] min-w-[10rem] items-center justify-center rounded-2xl border border-slate-200/70 bg-white/80 px-6 py-3 text-2xl font-semibold tracking-[0.35em] text-slate-900 shadow-inner">
+                {currentInput || "\u2022\u2022\u2022"}
               </div>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                {shuffledLetters.map((letter, index) => (
-                  <button
-                    key={`${letter}-${index}`}
-                    type="button"
-                    onClick={() => handleLetter(letter)}
-                    className="lexitwist-letter focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/40"
-                  >
-                    <span className="drop-shadow-[0_4px_6px_rgba(14,116,144,0.3)]">{letter}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                <button
-                  type="button"
-                  onClick={handleShuffle}
-                  className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                >
-                  Shuffle
-                </button>
-                <button
-                  type="button"
-                  onClick={handleBackspace}
-                  className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                >
-                  Undo
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="cosmic-pill px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                >
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="cosmic-pill cosmic-pill--active px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white"
-                >
-                  Submit
-                </button>
-              </div>
-              <p className="mt-4 text-[0.65rem] text-white/50">
-                Tip: Use your keyboard. Enter to submit, Backspace to undo, Escape to clear.
-              </p>
-              <p className="text-[0.6rem] text-white/40">
-                Bonus dictionary discoveries earn multiplier rewards—keep experimenting even after clearing the target.
-              </p>
             </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              {shuffledLetters.map((letter, index) => (
+                <button
+                  key={`${letter}-${index}`}
+                  type="button"
+                  onClick={() => handleLetter(letter)}
+                  className="lexitwist-letter focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                >
+                  <span>{letter}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <button type="button" onClick={handleShuffle} className={subtlePillClasses}>
+                Shuffle
+              </button>
+              <button type="button" onClick={handleBackspace} className={subtlePillClasses}>
+                Undo
+              </button>
+              <button type="button" onClick={handleClear} className={subtlePillClasses}>
+                Clear
+              </button>
+              <button type="button" onClick={handleSubmit} className={primaryPillClasses}>
+                Submit
+              </button>
+            </div>
+            <p className="mt-4 text-xs text-slate-500">
+              Tip: Use your keyboard. Enter to submit, Backspace to undo, Escape to clear.
+            </p>
+            <p className="text-xs text-slate-500">
+              Bonus dictionary discoveries earn multiplier rewards—keep experimenting even after clearing the target.
+            </p>
+          </div>
 
-            <div className="grid w-full gap-6 sm:grid-cols-2">
-              <div className="cosmic-card space-y-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
-                  Found Words
-                </p>
+          <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-8">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Found Words</p>
                 {foundWords.length === 0 ? (
-                  <p className="text-sm text-white/60">
+                  <p className="mt-3 text-sm text-slate-600">
                     The board is empty for now. Discover words to fill this log.
                   </p>
                 ) : (
-                  <ul className="grid grid-cols-2 gap-3 text-left text-sm">
+                  <ul className="mt-4 grid grid-cols-2 gap-3 text-left text-sm">
                     {foundWords.map((entry) => (
                       <li
                         key={entry.word}
-                        className={`lexitwist-word flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white/80 shadow-[0_12px_28px_rgba(2,6,23,0.4)] backdrop-blur-xl ${recentWord === entry.word ? "lexitwist-word-celebrate" : ""} ${entry.type === "bonus" ? "lexitwist-word--bonus" : ""}`}
+                        className={`lexitwist-word flex items-center justify-between rounded-xl border border-slate-200/70 bg-gradient-to-br from-white via-blue-50/70 to-emerald-50/60 px-3 py-2 text-slate-700 shadow-sm ${recentWord === entry.word ? "lexitwist-word-celebrate" : ""} ${entry.type === "bonus" ? "lexitwist-word--bonus" : ""}`}
                       >
-                        <span className="font-semibold tracking-[0.35em] text-white/80">
-                          {entry.word}
-                        </span>
-                        <span className="flex items-center gap-2 text-xs font-medium text-emerald-200/80">
-                          {entry.type === "bonus" ? (
-                            <span className="lexitwist-word-badge">Bonus</span>
-                          ) : null}
+                        <span className="font-semibold tracking-[0.35em] text-slate-900">{entry.word}</span>
+                        <span className="flex items-center gap-2 text-xs font-medium text-emerald-600">
+                          {entry.type === "bonus" ? <span className="lexitwist-word-badge">Bonus</span> : null}
                           +{entry.points}
                         </span>
                       </li>
@@ -807,39 +774,31 @@ export default function LexiTwistGame() {
                 )}
               </div>
 
-              <div className="cosmic-card space-y-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
-                  Goals & Controls
-                </p>
-                <div className="space-y-3 text-sm text-white/70">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Goals &amp; Controls</p>
+                <div className="mt-3 space-y-3 text-sm text-slate-600">
                   <p>
-                    Reach the target score to advance. You can keep hunting for more words even
-                    after the goal is met for bonus points.
+                    Reach the target score to advance. You can keep hunting for more words even after the goal is met for bonus points.
                   </p>
                   <p>
-                    Longer words award more points. Difficulty multipliers amplify every find,
-                    and dictionary discoveries stack extra bonuses.
+                    Longer words award more points. Difficulty multipliers amplify every find, and dictionary discoveries stack extra bonuses.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
                     onClick={handleNextRound}
-                    className={`cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] ${targetReached ? "text-white" : "text-white/40"}`}
+                    className={targetReached ? primaryPillClasses : disabledPillClasses}
                     disabled={!targetReached}
                   >
                     {targetReached ? "Next Round" : "Reach Target to Unlock"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleResetGame}
-                    className="cosmic-pill px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80"
-                  >
+                  <button type="button" onClick={handleResetGame} className={subtlePillClasses}>
                     Reset Game
                   </button>
                 </div>
                 {targetReached ? (
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-200">
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-amber-600">
                     Target cleared on {activeLevel.label}! Move on or keep scoring in this round.
                   </p>
                 ) : null}
@@ -848,112 +807,94 @@ export default function LexiTwistGame() {
           </div>
         </div>
 
-        {showCheckpoint && checkpointData ? (
-          <div
-            className="lexitwist-checkpoint-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="lexitwist-checkpoint-title"
-          >
-            <div className="lexitwist-checkpoint-panel cosmic-card">
-              <div className="flex flex-col gap-3 text-left text-white/80">
-                <p
-                  id="lexitwist-checkpoint-title"
-                  className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-200"
-                >
-                  Milestone Checkpoint
-                </p>
-                <h2 className="text-2xl font-bold tracking-[0.25em] text-white">
-                  Round {checkpointData.roundNumber} Complete
-                </h2>
-                <p className="text-sm text-white/70">
-                  You uncovered {checkpointData.coreWords.length - checkpointMissedCount} of the
-                  {" "}
-                  {checkpointData.coreWords.length} core words on {checkpointData.levelLabel}. Take a
-                  moment to review every possibility before diving into the next challenge.
-                </p>
-                <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.3em] text-white/60">
-                  <span className="lexitwist-checkpoint-pill">
-                    Level: {checkpointData.levelLabel}
-                  </span>
-                  <span className="lexitwist-checkpoint-pill">
-                    Core Found: {checkpointData.coreWords.length - checkpointMissedCount}/
-                    {checkpointData.coreWords.length}
-                  </span>
-                  <span className="lexitwist-checkpoint-pill">
-                    Round Score: {checkpointData.totalPoints.toLocaleString()}
-                  </span>
-                  {checkpointData.bonusWords.length > 0 ? (
-                    <span className="lexitwist-checkpoint-pill">
-                      Bonus Finds: {checkpointData.bonusWords.length}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="lexitwist-summary-grid">
-                {checkpointData.coreWords.map((word) => {
-                  const found = checkpointFoundSet?.has(word);
-                  return (
-                    <div
-                      key={word}
-                      className={`lexitwist-summary-word ${found ? "lexitwist-summary-word--found" : "lexitwist-summary-word--missed"}`}
-                    >
-                      <span className="lexitwist-summary-word-label">{word}</span>
-                      <span className="lexitwist-summary-word-status">
-                        {found ? "Found" : "Missed"}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {checkpointData.bonusWords.length > 0 ? (
-                <div className="lexitwist-bonus-summary">
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-200">
-                    Bonus Dictionary Finds
-                  </p>
-                  <p className="text-sm text-white/70">
-                    These extra words weren’t part of the puzzle list but still earned you bonus points:
-                  </p>
-                  <div className="lexitwist-bonus-list">
-                    {checkpointData.bonusWords.map((word) => (
-                      <span key={word} className="lexitwist-bonus-chip">
-                        {word}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCheckpointContinue}
-                  className="cosmic-pill cosmic-pill--active px-6 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white"
-                >
-                  Start Next Round
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCheckpointStay}
-                  className="cosmic-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
-                >
-                  Keep Exploring
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
         <GameFooter
           gameName="Text Twist"
           creator="GameHouse"
           moreInfo={{ url: "https://en.wikipedia.org/wiki/Text_Twist", label: "Text Twist on Wikipedia" }}
-          className="mt-12"
-          variant="cosmic"
+          className="w-full max-w-md lg:max-w-xs lg:self-start"
         />
       </div>
+
+      {showCheckpoint && checkpointData ? (
+        <div
+          className="lexitwist-checkpoint-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lexitwist-checkpoint-title"
+        >
+          <div className="lexitwist-checkpoint-panel">
+            <div className="flex flex-col gap-3 text-left text-slate-700">
+              <p
+                id="lexitwist-checkpoint-title"
+                className="text-xs font-semibold uppercase tracking-[0.4em] text-blue-600"
+              >
+                Milestone Checkpoint
+              </p>
+              <h2 className="text-2xl font-bold tracking-[0.25em] text-slate-900">
+                Round {checkpointData.roundNumber} Complete
+              </h2>
+              <p className="text-sm text-slate-600">
+                You uncovered {checkpointData.coreWords.length - checkpointMissedCount} of the {checkpointData.coreWords.length} core words on {checkpointData.levelLabel}.
+                Take a moment to review every possibility before diving into the next challenge.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.3em] text-slate-600">
+                <span className="lexitwist-checkpoint-pill">Level: {checkpointData.levelLabel}</span>
+                <span className="lexitwist-checkpoint-pill">
+                  Core Found: {checkpointData.coreWords.length - checkpointMissedCount}/{checkpointData.coreWords.length}
+                </span>
+                <span className="lexitwist-checkpoint-pill">
+                  Round Score: {checkpointData.totalPoints.toLocaleString()}
+                </span>
+                {checkpointData.bonusWords.length > 0 ? (
+                  <span className="lexitwist-checkpoint-pill">Bonus Finds: {checkpointData.bonusWords.length}</span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="lexitwist-summary-grid">
+              {checkpointData.coreWords.map((word) => {
+                const found = checkpointFoundSet?.has(word);
+                return (
+                  <div
+                    key={word}
+                    className={`lexitwist-summary-word ${found ? "lexitwist-summary-word--found" : "lexitwist-summary-word--missed"}`}
+                  >
+                    <span className="lexitwist-summary-word-label">{word}</span>
+                    <span className="lexitwist-summary-word-status">{found ? "Found" : "Missed"}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {checkpointData.bonusWords.length > 0 ? (
+              <div className="lexitwist-bonus-summary">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-600">
+                  Bonus Dictionary Finds
+                </p>
+                <p className="text-sm text-slate-600">
+                  These extra words weren’t part of the puzzle list but still earned you bonus points:
+                </p>
+                <div className="lexitwist-bonus-list">
+                  {checkpointData.bonusWords.map((word) => (
+                    <span key={word} className="lexitwist-bonus-chip">
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button" onClick={handleCheckpointContinue} className={primaryPillClasses}>
+                Start Next Round
+              </button>
+              <button type="button" onClick={handleCheckpointStay} className={subtlePillClasses}>
+                Keep Exploring
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

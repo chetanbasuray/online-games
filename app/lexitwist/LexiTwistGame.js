@@ -17,7 +17,7 @@ const LENGTH_SCORES = {
   8: 500,
 };
 
-const showSupportWidget = isGamePlayable("/wordforge");
+const showSupportWidget = isGamePlayable("/lexitwist");
 
 const shuffleArray = (letters) => {
   const clone = [...letters];
@@ -45,7 +45,7 @@ const sortWords = (words) =>
 
 const getWordScore = (word) => LENGTH_SCORES[word.length] ?? LENGTH_SCORES[8];
 
-export default function WordForgeGame() {
+export default function LexiTwistGame() {
   const [puzzleIndex, setPuzzleIndex] = useState(0);
   const initialLetters = useMemo(
     () => PUZZLES[0].letters.toUpperCase().split(""),
@@ -331,7 +331,7 @@ export default function WordForgeGame() {
                 Round {puzzleIndex + 1} of {PUZZLES.length}
               </span>
               <h1 className="cosmic-heading text-3xl font-semibold sm:text-4xl">
-                Word Forge Challenge
+                LexiTwist Challenge
               </h1>
               <p className="max-w-2xl text-sm text-white/70 sm:text-base">
                 Inspired by the classic Text Twist formula: combine the glowing letters to
@@ -383,7 +383,7 @@ export default function WordForgeGame() {
             </div>
 
             <div
-              className={`relative w-full max-w-2xl rounded-3xl border border-white/10 bg-white/10 px-6 py-6 text-center shadow-[0_22px_55px_rgba(2,6,23,0.5)] backdrop-blur-xl transition ${feedback === "success" ? "wordforge-success" : ""} ${feedback === "error" ? "wordforge-error" : ""}`}
+              className={`relative w-full max-w-2xl rounded-3xl border border-white/10 bg-white/10 px-6 py-6 text-center shadow-[0_22px_55px_rgba(2,6,23,0.5)] backdrop-blur-xl transition ${feedback === "success" ? "lexitwist-success" : ""} ${feedback === "error" ? "lexitwist-error" : ""}`}
             >
               <p className="min-h-[1.25rem] text-sm font-medium text-white/80">{statusMessage}</p>
               <div className="mt-4 flex items-center justify-center gap-3">
@@ -397,7 +397,7 @@ export default function WordForgeGame() {
                     key={`${letter}-${index}`}
                     type="button"
                     onClick={() => handleLetter(letter)}
-                    className="group relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-200/80 via-emerald-200/70 to-blue-200/60 text-2xl font-bold text-slate-800 shadow-[0_16px_35px_rgba(56,189,248,0.25)] transition-transform hover:-translate-y-1 hover:scale-105 hover:shadow-[0_20px_45px_rgba(56,189,248,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                    className="lexitwist-letter focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-200/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900/40"
                   >
                     <span className="drop-shadow-[0_4px_6px_rgba(14,116,144,0.3)]">{letter}</span>
                   </button>
@@ -452,7 +452,7 @@ export default function WordForgeGame() {
                     {foundWords.map((word) => (
                       <li
                         key={word}
-                        className={`wordforge-word flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white/80 shadow-[0_12px_28px_rgba(2,6,23,0.4)] backdrop-blur-xl ${recentWord === word ? "wordforge-word-celebrate" : ""}`}
+                        className={`lexitwist-word flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white/80 shadow-[0_12px_28px_rgba(2,6,23,0.4)] backdrop-blur-xl ${recentWord === word ? "lexitwist-word-celebrate" : ""}`}
                       >
                         <span className="font-semibold tracking-[0.35em] text-white/80">
                           {word}

@@ -206,22 +206,22 @@ body {
   will-change: transform, opacity;
 }
 
-.wordforge-success {
-  animation: wordforgePulse 0.6s ease;
+.lexitwist-success {
+  animation: lexitwistPulse 0.6s ease;
   box-shadow: 0 18px 48px rgba(56, 189, 248, 0.35), 0 0 35px rgba(129, 140, 248, 0.35);
 }
 
-.wordforge-error {
-  animation: wordforgeShake 0.45s ease;
+.lexitwist-error {
+  animation: lexitwistShake 0.45s ease;
   box-shadow: 0 12px 34px rgba(248, 113, 113, 0.28);
 }
 
-.wordforge-word {
+.lexitwist-word {
   position: relative;
   overflow: hidden;
 }
 
-.wordforge-word::after {
+.lexitwist-word::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -232,18 +232,65 @@ body {
   pointer-events: none;
 }
 
-.wordforge-word:hover::after {
+.lexitwist-word:hover::after {
   opacity: 1;
 }
 
-.wordforge-word-celebrate {
-  animation: wordforgeCelebrate 0.65s ease;
+.lexitwist-word-celebrate {
+  animation: lexitwistCelebrate 0.65s ease;
 }
 
-.wordforge-word-celebrate::after {
+.lexitwist-word-celebrate::after {
   opacity: 1;
 }
 
+
+.lexitwist-letter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(59, 130, 246, 0.75));
+  box-shadow: 0 16px 32px rgba(30, 64, 175, 0.35);
+  color: #0f172a;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.lexitwist-letter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.7), transparent 65%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.lexitwist-letter:hover,
+.lexitwist-letter:focus-visible {
+  transform: translateY(-4px) scale(1.05);
+  border-color: rgba(226, 232, 240, 0.6);
+  box-shadow: 0 22px 42px rgba(59, 130, 246, 0.35);
+}
+
+.lexitwist-letter:hover::after,
+.lexitwist-letter:focus-visible::after {
+  opacity: 1;
+}
+
+.lexitwist-letter:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 12px 22px rgba(37, 99, 235, 0.25);
+}
 
 .wordle-key {
   display: inline-flex;
@@ -635,7 +682,7 @@ body {
   }
 }
 
-@keyframes wordforgePulse {
+@keyframes lexitwistPulse {
   0% {
     transform: scale(1);
   }
@@ -650,7 +697,7 @@ body {
   }
 }
 
-@keyframes wordforgeShake {
+@keyframes lexitwistShake {
   0%,
   100% {
     transform: translateX(0);
@@ -669,7 +716,7 @@ body {
   }
 }
 
-@keyframes wordforgeCelebrate {
+@keyframes lexitwistCelebrate {
   0% {
     transform: scale(0.95);
     opacity: 0.4;
@@ -691,9 +738,9 @@ body {
   .tile--flipped,
   .sudoku-cell--highlight,
   .cosmic-particle,
-  .wordforge-success,
-  .wordforge-error,
-  .wordforge-word-celebrate {
+  .lexitwist-success,
+  .lexitwist-error,
+  .lexitwist-word-celebrate {
     animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
     animation-delay: 0s !important;

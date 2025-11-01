@@ -99,6 +99,9 @@ export default function LexiTwistGame() {
   const [recentWord, setRecentWord] = useState(null);
   const [dictionaryStatus, setDictionaryStatus] = useState("loading");
   const [dictionarySize, setDictionarySize] = useState(0);
+  const [roundsCompleted, setRoundsCompleted] = useState(0);
+  const [checkpointData, setCheckpointData] = useState(null);
+  const [showCheckpoint, setShowCheckpoint] = useState(false);
 
   const successSynthRef = useRef(null);
   const missSynthRef = useRef(null);
@@ -132,6 +135,17 @@ export default function LexiTwistGame() {
     [foundWords],
   );
   const bonusWordCount = foundWords.length - coreWordCount;
+
+  const checkpointFoundSet = useMemo(() => {
+    if (!checkpointData) return null;
+    return new Set(checkpointData.foundCoreWords ?? []);
+  }, [checkpointData]);
+
+  const checkpointMissedCount = useMemo(() => {
+    if (!checkpointData) return 0;
+    const foundSet = new Set(checkpointData.foundCoreWords ?? []);
+    return checkpointData.coreWords.filter((word) => !foundSet.has(word)).length;
+  }, [checkpointData]);
 
   const targetReached = roundScore >= activeTargetScore;
   const progress = Math.min(
@@ -372,6 +386,9 @@ export default function LexiTwistGame() {
       setCurrentInput("");
       setFeedback(null);
       setRecentWord(null);
+      setRoundsCompleted(0);
+      setCheckpointData(null);
+      setShowCheckpoint(false);
       const baseLetters = PUZZLES[0].letters.toUpperCase().split("");
       setShuffledLetters(shuffleArray(baseLetters));
       const recalculatedTarget = Math.round(
@@ -467,10 +484,77 @@ export default function LexiTwistGame() {
     validWords,
   ]);
 
-  const handleNextRound = useCallback(() => {
+  const advanceToNextPuzzle = useCallback(() => {
+    setCheckpointData(null);
+    setShowCheckpoint(false);
     setPuzzleIndex((prev) => (prev + 1) % PUZZLES.length);
     setRecentWord(null);
     setCurrentInput("");
+  }, []);
+
+  const handleNextRound = useCallback(() => {
+    if (!targetReached) return;
+
+    const nextRoundsCompleted = roundsCompleted + 1;
+    const coreFoundSet = new Set(
+      foundWords
+        .filter((entry) => entry.type === "core")
+        .map((entry) => entry.word),
+    );
+    const sortedCoreWords = [...puzzle.words]
+      .map((word) => word.toUpperCase())
+      .sort((a, b) =>
+        a.length === b.length ? a.localeCompare(b) : a.length - b.length,
+      );
+    const summaryPayload = {
+      roundNumber: puzzleIndex + 1,
+      levelLabel: activeLevel.label,
+      totalPoints: roundScore,
+      coreWords: sortedCoreWords,
+      foundCoreWords: Array.from(coreFoundSet),
+      bonusWords: foundWords
+        .filter((entry) => entry.type === "bonus")
+        .map((entry) => entry.word),
+    };
+
+    if (nextRoundsCompleted % 4 === 0) {
+      setCheckpointData(summaryPayload);
+      setShowCheckpoint(true);
+      setRoundsCompleted(nextRoundsCompleted);
+      setStatusMessage(
+        "Checkpoint reached! Review every possible word before continuing.",
+      );
+      return;
+    }
+
+    setRoundsCompleted(nextRoundsCompleted);
+    setStatusMessage(
+      `Round ${puzzleIndex + 1} cleared! Spinning up the next challenge...`,
+    );
+    advanceToNextPuzzle();
+  }, [
+    activeLevel.label,
+    advanceToNextPuzzle,
+    foundWords,
+    puzzle.words,
+    puzzleIndex,
+    roundScore,
+    roundsCompleted,
+    setStatusMessage,
+    targetReached,
+  ]);
+
+  const handleCheckpointContinue = useCallback(() => {
+    setShowCheckpoint(false);
+    setStatusMessage("Let's tackle a fresh wheel of letters!");
+    advanceToNextPuzzle();
+  }, [advanceToNextPuzzle]);
+
+  const handleCheckpointStay = useCallback(() => {
+    setShowCheckpoint(false);
+    setCheckpointData(null);
+    setRoundsCompleted((prev) => Math.max(0, prev - 1));
+    setStatusMessage("Take your time—keep exploring this round for more words.");
   }, []);
 
   const handleResetGame = useCallback(() => {
@@ -481,6 +565,9 @@ export default function LexiTwistGame() {
     setCurrentInput("");
     setFeedback(null);
     setRecentWord(null);
+    setRoundsCompleted(0);
+    setCheckpointData(null);
+    setShowCheckpoint(false);
     const baseLetters = PUZZLES[0].letters.toUpperCase().split("");
     setShuffledLetters(shuffleArray(baseLetters));
     const resetTarget = Math.round(
@@ -760,6 +847,104 @@ export default function LexiTwistGame() {
             </div>
           </div>
         </div>
+
+        {showCheckpoint && checkpointData ? (
+          <div
+            className="lexitwist-checkpoint-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lexitwist-checkpoint-title"
+          >
+            <div className="lexitwist-checkpoint-panel cosmic-card">
+              <div className="flex flex-col gap-3 text-left text-white/80">
+                <p
+                  id="lexitwist-checkpoint-title"
+                  className="text-xs font-semibold uppercase tracking-[0.4em] text-sky-200"
+                >
+                  Milestone Checkpoint
+                </p>
+                <h2 className="text-2xl font-bold tracking-[0.25em] text-white">
+                  Round {checkpointData.roundNumber} Complete
+                </h2>
+                <p className="text-sm text-white/70">
+                  You uncovered {checkpointData.coreWords.length - checkpointMissedCount} of the
+                  {" "}
+                  {checkpointData.coreWords.length} core words on {checkpointData.levelLabel}. Take a
+                  moment to review every possibility before diving into the next challenge.
+                </p>
+                <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.3em] text-white/60">
+                  <span className="lexitwist-checkpoint-pill">
+                    Level: {checkpointData.levelLabel}
+                  </span>
+                  <span className="lexitwist-checkpoint-pill">
+                    Core Found: {checkpointData.coreWords.length - checkpointMissedCount}/
+                    {checkpointData.coreWords.length}
+                  </span>
+                  <span className="lexitwist-checkpoint-pill">
+                    Round Score: {checkpointData.totalPoints.toLocaleString()}
+                  </span>
+                  {checkpointData.bonusWords.length > 0 ? (
+                    <span className="lexitwist-checkpoint-pill">
+                      Bonus Finds: {checkpointData.bonusWords.length}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="lexitwist-summary-grid">
+                {checkpointData.coreWords.map((word) => {
+                  const found = checkpointFoundSet?.has(word);
+                  return (
+                    <div
+                      key={word}
+                      className={`lexitwist-summary-word ${found ? "lexitwist-summary-word--found" : "lexitwist-summary-word--missed"}`}
+                    >
+                      <span className="lexitwist-summary-word-label">{word}</span>
+                      <span className="lexitwist-summary-word-status">
+                        {found ? "Found" : "Missed"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {checkpointData.bonusWords.length > 0 ? (
+                <div className="lexitwist-bonus-summary">
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-amber-200">
+                    Bonus Dictionary Finds
+                  </p>
+                  <p className="text-sm text-white/70">
+                    These extra words weren’t part of the puzzle list but still earned you bonus points:
+                  </p>
+                  <div className="lexitwist-bonus-list">
+                    {checkpointData.bonusWords.map((word) => (
+                      <span key={word} className="lexitwist-bonus-chip">
+                        {word}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCheckpointContinue}
+                  className="cosmic-pill cosmic-pill--active px-6 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white"
+                >
+                  Start Next Round
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCheckpointStay}
+                  className="cosmic-pill px-6 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
+                >
+                  Keep Exploring
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <GameFooter
           gameName="Text Twist"

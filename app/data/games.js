@@ -27,7 +27,14 @@ export const GAMES = [
     name: "Tetris",
     path: "/tetris",
     isPlayable: true,
-    badge: "New",
     description: "Rotate, drop, and stack colorful tetrominoes in a fast-paced challenge.",
+  },
+  {
+    name: "LexiTwist",
+    path: "/lexitwist",
+    isPlayable: true,
+    badge: "New",
+    description:
+      "Spin eight radiant letters into cascading words, unlock harder levels, and chase each round's escalating score goal.",
   },
 ];

@@ -23,6 +23,7 @@ export default function WordlePage() {
   const resultTimeoutRef = useRef(null);
   const currentGameRef = useRef(0);
   const previousSolutionRef = useRef(null);
+  const solutionRef = useRef("");
 
   const clearFlipTimeouts = () => {
     flipTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -85,6 +86,10 @@ export default function WordlePage() {
   };
 
   useEffect(() => startNewGame(), []);
+
+  useEffect(() => {
+    solutionRef.current = solution;
+  }, [solution]);
 
   useEffect(() => () => {
     clearFlipTimeouts();
@@ -243,6 +248,17 @@ export default function WordlePage() {
   const keyboardDisabled = !isGameActive || !hasSolution;
   const boardDataId = `wordle-${gameId}`;
 
+  const handleNewGameClick = () => {
+    const previousSolution = solutionRef.current;
+    startNewGame();
+
+    setTimeout(() => {
+      if (solutionRef.current === previousSolution && typeof window !== "undefined") {
+        window.location.reload();
+      }
+    }, 400);
+  };
+
   return (
     <div className="min-h-screen px-4 py-10 text-slate-900">
       {showSupportWidget && <SupportWidget />}
@@ -339,7 +355,7 @@ export default function WordlePage() {
                   Delete Letter
                 </button>
                 <button
-                  onClick={startNewGame}
+                  onClick={handleNewGameClick}
                   className="rounded-full border border-transparent bg-gradient-to-r from-emerald-100 via-green-100 to-blue-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700 shadow-sm transition hover:brightness-110"
                   type="button"
                 >

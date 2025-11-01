@@ -34,6 +34,7 @@ export const GAMES = [
     path: "/lexitwist",
     isPlayable: true,
     badge: "New",
-    description: "Spin eight radiant letters into cascading words and chase each round's score goal.",
+    description:
+      "Spin eight radiant letters into cascading words, unlock harder levels, and chase each round's escalating score goal.",
   },
 ];

@@ -7,6 +7,7 @@ import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
 import { PUZZLES } from "./puzzles";
+import { WORDS as WORDLE_WORDS } from "../wordle/words";
 
 const LENGTH_SCORES = {
   3: 80,
@@ -16,6 +17,35 @@ const LENGTH_SCORES = {
   7: 360,
   8: 500,
 };
+
+const MIN_WORD_LENGTH = 3;
+
+const LEVELS = [
+  {
+    id: "relaxed",
+    label: "Relaxed",
+    description: "Gentle pace with slightly lower targets and steady scoring.",
+    targetMultiplier: 0.85,
+    scoreMultiplier: 1,
+    bonusMultiplier: 1.05,
+  },
+  {
+    id: "classic",
+    label: "Classic",
+    description: "Balanced targets that mirror the original Text Twist challenge.",
+    targetMultiplier: 1,
+    scoreMultiplier: 1.05,
+    bonusMultiplier: 1.15,
+  },
+  {
+    id: "expert",
+    label: "Expert",
+    description: "Steeper goals and juicier rewards for seasoned word hunters.",
+    targetMultiplier: 1.4,
+    scoreMultiplier: 1.12,
+    bonusMultiplier: 1.28,
+  },
+];
 
 const showSupportWidget = isGamePlayable("/lexitwist");
 
@@ -35,17 +65,21 @@ const buildLetterMap = (letters) => {
   }, {});
 };
 
-const sortWords = (words) =>
-  [...words].sort((a, b) => {
-    if (a.length === b.length) {
-      return a.localeCompare(b);
+const sortFoundEntries = (entries) =>
+  [...entries].sort((a, b) => {
+    if (a.type !== b.type) {
+      return a.type === "core" ? -1 : 1;
     }
-    return a.length - b.length;
+    if (a.word.length === b.word.length) {
+      return a.word.localeCompare(b.word);
+    }
+    return a.word.length - b.word.length;
   });
 
 const getWordScore = (word) => LENGTH_SCORES[word.length] ?? LENGTH_SCORES[8];
 
 export default function LexiTwistGame() {
+  const [levelId, setLevelId] = useState(LEVELS[1].id);
   const [puzzleIndex, setPuzzleIndex] = useState(0);
   const initialLetters = useMemo(
     () => PUZZLES[0].letters.toUpperCase().split(""),
@@ -63,12 +97,19 @@ export default function LexiTwistGame() {
   );
   const [feedback, setFeedback] = useState(null);
   const [recentWord, setRecentWord] = useState(null);
+  const [dictionaryStatus, setDictionaryStatus] = useState("loading");
+  const [dictionarySize, setDictionarySize] = useState(0);
 
   const successSynthRef = useRef(null);
   const missSynthRef = useRef(null);
   const toneStartRef = useRef(null);
+  const dictionaryRef = useRef(null);
 
   const puzzle = PUZZLES[puzzleIndex];
+  const activeLevel = useMemo(
+    () => LEVELS.find((entry) => entry.id === levelId) ?? LEVELS[0],
+    [levelId],
+  );
   const letters = useMemo(
     () => puzzle.letters.toUpperCase().split(""),
     [puzzle.letters],
@@ -78,9 +119,37 @@ export default function LexiTwistGame() {
     () => new Set(puzzle.words.map((word) => word.toUpperCase())),
     [puzzle.words],
   );
+  const fallbackDictionary = useMemo(() => {
+    const source = new Set();
+    PUZZLES.forEach((entry) => {
+      entry.words.forEach((word) => {
+        source.add(word.toUpperCase());
+      });
+    });
+    WORDLE_WORDS.forEach((word) => {
+      if (word.length >= MIN_WORD_LENGTH) {
+        source.add(word.toUpperCase());
+      }
+    });
+    return source;
+  }, []);
+  const activeTargetScore = useMemo(
+    () => Math.round(puzzle.targetScore * activeLevel.targetMultiplier),
+    [activeLevel.targetMultiplier, puzzle.targetScore],
+  );
+  const coreWordCount = useMemo(
+    () => foundWords.filter((entry) => entry.type === "core").length,
+    [foundWords],
+  );
+  const bonusWordCount = foundWords.length - coreWordCount;
 
-  const targetReached = roundScore >= puzzle.targetScore;
-  const progress = Math.min(100, Math.round((roundScore / puzzle.targetScore) * 100));
+  const targetReached = roundScore >= activeTargetScore;
+  const progress = Math.min(
+    100,
+    activeTargetScore === 0
+      ? 0
+      : Math.round((roundScore / activeTargetScore) * 100),
+  );
 
   useEffect(() => {
     setShuffledLetters(shuffleArray(letters));
@@ -89,9 +158,87 @@ export default function LexiTwistGame() {
     setCurrentInput("");
     setFeedback(null);
     setStatusMessage(
-      `Round ${puzzleIndex + 1} unlocked! Reach ${puzzle.targetScore} points to continue.`,
+      `Round ${puzzleIndex + 1} unlocked on ${activeLevel.label} mode. Reach ${activeTargetScore} points to continue.`,
     );
-  }, [letters, puzzle.targetScore, puzzleIndex]);
+  }, [activeLevel.label, activeTargetScore, letters, puzzleIndex]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    const normalizeWords = (candidate) => {
+      if (!candidate) return [];
+      if (Array.isArray(candidate)) return candidate;
+      if (Array.isArray(candidate.default)) return candidate.default;
+      if (Array.isArray(candidate.words)) return candidate.words;
+      if (candidate.default && Array.isArray(candidate.default.words)) {
+        return candidate.default.words;
+      }
+      if (candidate.english && Array.isArray(candidate.english)) {
+        return candidate.english;
+      }
+      if (
+        candidate.languages &&
+        candidate.languages.english &&
+        Array.isArray(candidate.languages.english)
+      ) {
+        return candidate.languages.english;
+      }
+      return [];
+    };
+
+    const loadDictionary = async () => {
+      try {
+        setDictionaryStatus("loading");
+        const loader = new Function(
+          "specifier",
+          "return import(specifier);",
+        );
+        const module = await loader("word-list-english");
+        if (cancelled) return;
+        const normalized = normalizeWords(module);
+        if (normalized.length === 0) {
+          throw new Error("Dictionary payload empty");
+        }
+        const filtered = normalized.filter(
+          (word) => typeof word === "string" && word.length >= MIN_WORD_LENGTH,
+        );
+        const dictionary = new Set(
+          filtered.map((word) => word.toUpperCase()),
+        );
+        if (dictionary.size === 0) {
+          throw new Error("Dictionary did not contain uppercase entries");
+        }
+        dictionaryRef.current = dictionary;
+        setDictionarySize(dictionary.size);
+        setDictionaryStatus("ready");
+      } catch {
+        if (cancelled) return;
+        dictionaryRef.current = fallbackDictionary;
+        setDictionarySize(fallbackDictionary.size);
+        setDictionaryStatus("fallback");
+      }
+    };
+
+    dictionaryRef.current = fallbackDictionary;
+    setDictionarySize(fallbackDictionary.size);
+    setDictionaryStatus("fallback");
+
+    const scheduleLoad = () => {
+      void loadDictionary();
+    };
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(scheduleLoad);
+    } else {
+      window.setTimeout(scheduleLoad, 0);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackDictionary]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -222,6 +369,31 @@ export default function LexiTwistGame() {
     setStatusMessage("Letters shuffled for a fresh angle.");
   }, [letters]);
 
+  const handleLevelChange = useCallback(
+    (id) => {
+      if (id === levelId) return;
+      const targetLevel = LEVELS.find((entry) => entry.id === id);
+      if (!targetLevel) return;
+      setLevelId(targetLevel.id);
+      setPuzzleIndex(0);
+      setTotalScore(0);
+      setRoundScore(0);
+      setFoundWords([]);
+      setCurrentInput("");
+      setFeedback(null);
+      setRecentWord(null);
+      const baseLetters = PUZZLES[0].letters.toUpperCase().split("");
+      setShuffledLetters(shuffleArray(baseLetters));
+      const recalculatedTarget = Math.round(
+        PUZZLES[0].targetScore * targetLevel.targetMultiplier,
+      );
+      setStatusMessage(
+        `Switched to ${targetLevel.label} mode. Reach ${recalculatedTarget} points to conquer round 1.`,
+      );
+    },
+    [levelId],
+  );
+
   const handleSubmit = useCallback(() => {
     const word = currentInput.toUpperCase();
     if (!word) {
@@ -230,9 +402,11 @@ export default function LexiTwistGame() {
       playMiss();
       return;
     }
-    if (word.length < 3) {
+    if (word.length < MIN_WORD_LENGTH) {
       setFeedback("error");
-      setStatusMessage("Words must be at least three letters long.");
+      setStatusMessage(
+        `Words must be at least ${MIN_WORD_LENGTH} letters long.`,
+      );
       playMiss();
       return;
     }
@@ -242,33 +416,71 @@ export default function LexiTwistGame() {
       playMiss();
       return;
     }
-    if (!validWords.has(word)) {
+
+    const dictionarySet = dictionaryRef.current ?? fallbackDictionary;
+    const isCoreWord = validWords.has(word);
+    const isDictionaryWord = dictionarySet?.has(word);
+
+    if (!isCoreWord && !isDictionaryWord) {
       setFeedback("error");
-      setStatusMessage(`${word} isn't on today's list. Keep experimenting!`);
+      if (dictionaryStatus === "loading") {
+        setStatusMessage(
+          "Dictionary still loading—try that word again in a moment.",
+        );
+      } else {
+        setStatusMessage(`${word} isn't recognized as a valid word.`);
+      }
       playMiss();
       return;
     }
-    if (foundWords.includes(word)) {
+
+    if (foundWords.some((entry) => entry.word === word)) {
       setFeedback("error");
       setStatusMessage("You've already banked that word.");
       playMiss();
       return;
     }
 
-    const points = getWordScore(word);
-    const updatedWords = sortWords([...foundWords, word]);
+    const basePoints = getWordScore(word);
+    const difficultyMultiplier = activeLevel.scoreMultiplier;
+    const bonusMultiplier = isCoreWord ? 1 : activeLevel.bonusMultiplier;
+    const points = Math.round(
+      basePoints * difficultyMultiplier * bonusMultiplier,
+    );
+    const entryType = isCoreWord ? "core" : "bonus";
+    const updatedWords = sortFoundEntries([
+      ...foundWords,
+      { word, type: entryType, points },
+    ]);
     setFoundWords(updatedWords);
     setRoundScore((prev) => prev + points);
     setTotalScore((prev) => prev + points);
     setCurrentInput("");
     setFeedback("success");
-    setStatusMessage(`+${points} points for ${word}!`);
+    setStatusMessage(
+      isCoreWord
+        ? `+${points} points for ${word}!`
+        : `Bonus find! +${points} points for dictionary word ${word}.`,
+    );
     setRecentWord(word);
     playSuccess();
-  }, [currentInput, foundWords, isWordPossible, playMiss, playSuccess, validWords]);
+  }, [
+    activeLevel.bonusMultiplier,
+    activeLevel.scoreMultiplier,
+    currentInput,
+    dictionaryStatus,
+    fallbackDictionary,
+    foundWords,
+    isWordPossible,
+    playMiss,
+    playSuccess,
+    validWords,
+  ]);
 
   const handleNextRound = useCallback(() => {
     setPuzzleIndex((prev) => (prev + 1) % PUZZLES.length);
+    setRecentWord(null);
+    setCurrentInput("");
   }, []);
 
   const handleResetGame = useCallback(() => {
@@ -281,8 +493,13 @@ export default function LexiTwistGame() {
     setRecentWord(null);
     const baseLetters = PUZZLES[0].letters.toUpperCase().split("");
     setShuffledLetters(shuffleArray(baseLetters));
-    setStatusMessage("Game reset! Start again from round one.");
-  }, []);
+    const resetTarget = Math.round(
+      PUZZLES[0].targetScore * activeLevel.targetMultiplier,
+    );
+    setStatusMessage(
+      `Game reset on ${activeLevel.label}! Reach ${resetTarget} points to conquer round 1 again.`,
+    );
+  }, [activeLevel.label, activeLevel.targetMultiplier]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -328,7 +545,7 @@ export default function LexiTwistGame() {
           <div className="relative z-10 flex flex-col items-center gap-10">
             <header className="flex flex-col items-center gap-4 text-center">
               <span className="cosmic-pill text-xs font-semibold uppercase tracking-[0.45em] text-white/70">
-                Round {puzzleIndex + 1} of {PUZZLES.length}
+                Round {puzzleIndex + 1}/{PUZZLES.length} · {activeLevel.label} Mode
               </span>
               <h1 className="cosmic-heading text-3xl font-semibold sm:text-4xl">
                 LexiTwist Challenge
@@ -339,6 +556,41 @@ export default function LexiTwistGame() {
               </p>
             </header>
 
+            <div className="w-full max-w-3xl space-y-3">
+              <p className="text-center text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60 sm:text-left">
+                Choose Your Challenge
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {LEVELS.map((level) => {
+                  const isActive = levelId === level.id;
+                  return (
+                    <button
+                      key={level.id}
+                      type="button"
+                      onClick={() => handleLevelChange(level.id)}
+                      aria-pressed={isActive}
+                      className={`lexitwist-level-option ${isActive ? "lexitwist-level-option--active" : ""}`}
+                    >
+                      <span className="text-sm font-semibold tracking-[0.3em] uppercase text-white/80">
+                        {level.label}
+                      </span>
+                      <span className="text-xs text-white/70">{level.description}</span>
+                      <span className="text-[0.6rem] font-medium uppercase tracking-[0.3em] text-white/50">
+                        Target ×{level.targetMultiplier.toFixed(2)} · Score ×{level.scoreMultiplier.toFixed(2)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-center text-[0.6rem] text-white/50 sm:text-left">
+                {dictionaryStatus === "ready"
+                  ? `Dictionary ready with ${dictionarySize.toLocaleString()} entries. Bonus finds earn extra multipliers.`
+                  : dictionaryStatus === "loading"
+                  ? "Loading extended dictionary for extra bonus words..."
+                  : "Using the built-in fallback word list while the dictionary warms up."}
+              </p>
+            </div>
+
             <div className="grid w-full gap-4 sm:grid-cols-3">
               <div className="cosmic-card space-y-2 text-center">
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/60">
@@ -347,7 +599,7 @@ export default function LexiTwistGame() {
                 <p className="text-2xl font-bold text-sky-100">
                   {roundScore}
                   <span className="text-sm font-medium text-white/70">
-                    {" "}/ {puzzle.targetScore}
+                    {" "}/ {activeTargetScore}
                   </span>
                 </p>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
@@ -373,12 +625,18 @@ export default function LexiTwistGame() {
                   Words Discovered
                 </p>
                 <p className="text-2xl font-bold text-amber-100">
-                  {foundWords.length}
+                  {coreWordCount}
                   <span className="text-sm font-medium text-white/70">
                     {" "}/ {puzzle.words.length}
                   </span>
                 </p>
-                <p className="text-xs text-white/60">Earn more by finding longer words.</p>
+                {bonusWordCount > 0 ? (
+                  <p className="text-xs font-semibold text-emerald-200/80">
+                    +{bonusWordCount} bonus dictionary finds
+                  </p>
+                ) : (
+                  <p className="text-xs text-white/60">Earn more by finding longer words.</p>
+                )}
               </div>
             </div>
 
@@ -436,6 +694,9 @@ export default function LexiTwistGame() {
               <p className="mt-4 text-[0.65rem] text-white/50">
                 Tip: Use your keyboard. Enter to submit, Backspace to undo, Escape to clear.
               </p>
+              <p className="text-[0.6rem] text-white/40">
+                Bonus dictionary discoveries earn multiplier rewards—keep experimenting even after clearing the target.
+              </p>
             </div>
 
             <div className="grid w-full gap-6 sm:grid-cols-2">
@@ -449,16 +710,19 @@ export default function LexiTwistGame() {
                   </p>
                 ) : (
                   <ul className="grid grid-cols-2 gap-3 text-left text-sm">
-                    {foundWords.map((word) => (
+                    {foundWords.map((entry) => (
                       <li
-                        key={word}
-                        className={`lexitwist-word flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white/80 shadow-[0_12px_28px_rgba(2,6,23,0.4)] backdrop-blur-xl ${recentWord === word ? "lexitwist-word-celebrate" : ""}`}
+                        key={entry.word}
+                        className={`lexitwist-word flex items-center justify-between rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white/80 shadow-[0_12px_28px_rgba(2,6,23,0.4)] backdrop-blur-xl ${recentWord === entry.word ? "lexitwist-word-celebrate" : ""} ${entry.type === "bonus" ? "lexitwist-word--bonus" : ""}`}
                       >
                         <span className="font-semibold tracking-[0.35em] text-white/80">
-                          {word}
+                          {entry.word}
                         </span>
-                        <span className="text-xs font-medium text-emerald-200/80">
-                          +{getWordScore(word)}
+                        <span className="flex items-center gap-2 text-xs font-medium text-emerald-200/80">
+                          {entry.type === "bonus" ? (
+                            <span className="lexitwist-word-badge">Bonus</span>
+                          ) : null}
+                          +{entry.points}
                         </span>
                       </li>
                     ))}
@@ -476,8 +740,8 @@ export default function LexiTwistGame() {
                     after the goal is met for bonus points.
                   </p>
                   <p>
-                    Longer words award more points. Eight-letter anagrams are worth a jackpot 500
-                    points.
+                    Longer words award more points. Difficulty multipliers amplify every find,
+                    and dictionary discoveries stack extra bonuses.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -499,7 +763,7 @@ export default function LexiTwistGame() {
                 </div>
                 {targetReached ? (
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-200">
-                    Target cleared! Move on or keep scoring in this round.
+                    Target cleared on {activeLevel.label}! Move on or keep scoring in this round.
                   </p>
                 ) : null}
               </div>

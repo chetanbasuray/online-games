@@ -6,8 +6,8 @@ import CosmicBackground from "../components/CosmicBackground";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
+import { ENGLISH_WORDS_3_TO_8 } from "../data/englishWords";
 import { PUZZLES } from "./puzzles";
-import { WORDS as WORDLE_WORDS } from "../wordle/words";
 
 const LENGTH_SCORES = {
   3: 80,
@@ -119,20 +119,10 @@ export default function LexiTwistGame() {
     () => new Set(puzzle.words.map((word) => word.toUpperCase())),
     [puzzle.words],
   );
-  const fallbackDictionary = useMemo(() => {
-    const source = new Set();
-    PUZZLES.forEach((entry) => {
-      entry.words.forEach((word) => {
-        source.add(word.toUpperCase());
-      });
-    });
-    WORDLE_WORDS.forEach((word) => {
-      if (word.length >= MIN_WORD_LENGTH) {
-        source.add(word.toUpperCase());
-      }
-    });
-    return source;
-  }, []);
+  const fallbackDictionary = useMemo(
+    () => new Set(ENGLISH_WORDS_3_TO_8.map((word) => word.toUpperCase())),
+    [],
+  );
   const activeTargetScore = useMemo(
     () => Math.round(puzzle.targetScore * activeLevel.targetMultiplier),
     [activeLevel.targetMultiplier, puzzle.targetScore],

@@ -15,11 +15,13 @@ export default function WordlePage() {
   const [guesses, setGuesses] = useState([]);
   const [currentGuess, setCurrentGuess] = useState("");
   const [flippedTiles, setFlippedTiles] = useState([]);
+  const [gameId, setGameId] = useState(0);
   const [isWin, setIsWin] = useState(false);
   const [message, setMessage] = useState("");
   const [letterStatus, setLetterStatus] = useState({});
   const flipTimeoutsRef = useRef([]);
   const resultTimeoutRef = useRef(null);
+  const currentGameRef = useRef(0);
 
   const clearFlipTimeouts = () => {
     flipTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -37,6 +39,9 @@ export default function WordlePage() {
   const startNewGame = () => {
     clearFlipTimeouts();
     clearResultTimeout();
+    const nextGameId = currentGameRef.current + 1;
+    currentGameRef.current = nextGameId;
+    setGameId(nextGameId);
     const word = WORDS[Math.floor(Math.random() * WORDS.length)];
     setSolution(word);
     setGuesses([]);
@@ -148,15 +153,23 @@ export default function WordlePage() {
 
     // Flip animation
     const rowIndex = newGuesses.length - 1;
+    const activeGameId = currentGameRef.current;
+
     for (let i = 0; i < WORD_LENGTH; i++) {
       const timeoutId = setTimeout(() => {
-        setFlippedTiles((prev) => [...prev, { row: rowIndex, col: i }]);
+        if (currentGameRef.current === activeGameId) {
+          setFlippedTiles((prev) => [...prev, { row: rowIndex, col: i }]);
+        }
         flipTimeoutsRef.current = flipTimeoutsRef.current.filter((id) => id !== timeoutId);
       }, i * 300);
       flipTimeoutsRef.current.push(timeoutId);
     }
 
     resultTimeoutRef.current = setTimeout(async () => {
+      if (currentGameRef.current !== activeGameId) {
+        resultTimeoutRef.current = null;
+        return;
+      }
       const colors = getGuessColors(guessUpper, solution);
       if (colors.every((c) => c === "correct")) {
         setIsWin(true);
@@ -208,7 +221,7 @@ export default function WordlePage() {
 
           <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col items-center gap-6">
-              <div className="wordle-board" role="grid" aria-label="Wordle board">
+              <div key={gameId} className="wordle-board" role="grid" aria-label="Wordle board">
                 {Array.from({ length: MAX_GUESSES }).map((_, row) => {
                   const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
                   const isCurrentRow = row === guesses.length;

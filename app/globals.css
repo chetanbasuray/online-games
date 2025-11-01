@@ -208,12 +208,12 @@ body {
 
 .lexitwist-success {
   animation: lexitwistPulse 0.6s ease;
-  box-shadow: 0 18px 48px rgba(56, 189, 248, 0.35), 0 0 35px rgba(129, 140, 248, 0.35);
+  box-shadow: 0 16px 42px rgba(56, 189, 248, 0.25), 0 0 28px rgba(59, 130, 246, 0.2);
 }
 
 .lexitwist-error {
   animation: lexitwistShake 0.45s ease;
-  box-shadow: 0 12px 34px rgba(248, 113, 113, 0.28);
+  box-shadow: 0 14px 38px rgba(248, 113, 113, 0.22);
 }
 
 .lexitwist-word {
@@ -226,7 +226,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at top, rgba(56, 189, 248, 0.4), transparent 65%);
+  background: radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 65%);
   opacity: 0;
   transition: opacity 220ms ease;
   pointer-events: none;
@@ -253,10 +253,10 @@ body {
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 1.2rem;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(59, 130, 246, 0.75));
-  box-shadow: 0 16px 32px rgba(30, 64, 175, 0.35);
-  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(135deg, rgba(224, 231, 255, 0.9), rgba(191, 219, 254, 0.9));
+  box-shadow: 0 14px 30px rgba(148, 163, 184, 0.25);
+  color: #1e293b;
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -269,7 +269,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at 30% 30%, rgba(224, 242, 254, 0.7), transparent 65%);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.65), transparent 65%);
   opacity: 0;
   transition: opacity 200ms ease;
   pointer-events: none;
@@ -278,8 +278,8 @@ body {
 .lexitwist-letter:hover,
 .lexitwist-letter:focus-visible {
   transform: translateY(-4px) scale(1.05);
-  border-color: rgba(226, 232, 240, 0.6);
-  box-shadow: 0 22px 42px rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 22px 42px rgba(148, 163, 184, 0.28);
 }
 
 .lexitwist-letter:hover::after,
@@ -289,7 +289,7 @@ body {
 
 .lexitwist-letter:active {
   transform: translateY(1px) scale(0.98);
-  box-shadow: 0 12px 22px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 10px 22px rgba(148, 163, 184, 0.2);
 }
 
 .lexitwist-level-option {
@@ -299,9 +299,9 @@ body {
   gap: 0.45rem;
   padding: 1rem 1.25rem;
   border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: linear-gradient(135deg, rgba(30, 64, 175, 0.35), rgba(6, 182, 212, 0.18));
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(219, 234, 254, 0.75));
+  box-shadow: 0 16px 36px rgba(148, 163, 184, 0.18);
   text-align: left;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease,
     background 180ms ease;
@@ -311,20 +311,20 @@ body {
 .lexitwist-level-option:hover,
 .lexitwist-level-option:focus-visible {
   transform: translateY(-4px);
-  border-color: rgba(148, 163, 255, 0.5);
-  box-shadow: 0 24px 56px rgba(56, 189, 248, 0.4);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 22px 44px rgba(148, 163, 184, 0.22);
   outline: none;
 }
 
 .lexitwist-level-option--active {
-  border-color: rgba(56, 189, 248, 0.55);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.38), rgba(16, 185, 129, 0.32));
-  box-shadow: 0 28px 62px rgba(14, 116, 144, 0.45);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(167, 243, 208, 0.8));
+  box-shadow: 0 24px 52px rgba(59, 130, 246, 0.25);
 }
 
 .lexitwist-word--bonus {
-  border-color: rgba(253, 224, 71, 0.45);
-  background: linear-gradient(135deg, rgba(253, 224, 71, 0.18), rgba(59, 130, 246, 0.12));
+  border-color: rgba(37, 99, 235, 0.35);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.85), rgba(221, 214, 254, 0.75));
 }
 
 .lexitwist-word-badge {
@@ -332,8 +332,8 @@ body {
   align-items: center;
   padding: 0.15rem 0.55rem;
   border-radius: 9999px;
-  background: rgba(253, 224, 71, 0.25);
-  color: #fef9c3;
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
   font-weight: 600;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -346,8 +346,8 @@ body {
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 4vw, 3rem);
-  background: rgba(2, 6, 23, 0.72);
-  backdrop-filter: blur(18px);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
   z-index: 50;
 }
 
@@ -358,22 +358,23 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
-  padding: clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.65rem, 4vw, 3rem);
   border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  box-shadow: 0 28px 65px rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(219, 234, 254, 0.88));
+  box-shadow: 0 32px 70px rgba(15, 23, 42, 0.25);
 }
 
 .lexitwist-checkpoint-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   padding: 0.45rem 0.9rem;
   border-radius: 9999px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(14, 165, 233, 0.08));
-  color: #e2e8f0;
-  letter-spacing: 0.2em;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.7), rgba(191, 219, 254, 0.55));
+  color: #1d4ed8;
+  letter-spacing: 0.18em;
 }
 
 .lexitwist-summary-grid {
@@ -389,9 +390,9 @@ body {
   gap: 0.25rem;
   padding: 0.85rem 1rem;
   border-radius: 1.1rem;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(30, 64, 175, 0.35));
-  box-shadow: 0 16px 32px rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(219, 234, 254, 0.85));
+  box-shadow: 0 18px 36px rgba(148, 163, 184, 0.18);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
@@ -400,7 +401,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: #e2e8f0;
+  color: #1f2937;
 }
 
 .lexitwist-summary-word-status {
@@ -408,26 +409,27 @@ body {
   font-weight: 600;
   letter-spacing: 0.3em;
   text-transform: uppercase;
+  color: #475569;
 }
 
 .lexitwist-summary-word--found {
-  border-color: rgba(34, 197, 94, 0.45);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(15, 23, 42, 0.7));
-  box-shadow: 0 20px 36px rgba(34, 197, 94, 0.35);
+  border-color: rgba(16, 185, 129, 0.45);
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(167, 243, 208, 0.8));
+  box-shadow: 0 20px 38px rgba(16, 185, 129, 0.28);
 }
 
 .lexitwist-summary-word--found .lexitwist-summary-word-status {
-  color: rgba(134, 239, 172, 0.9);
+  color: #047857;
 }
 
 .lexitwist-summary-word--missed {
-  border-color: rgba(239, 68, 68, 0.35);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(15, 23, 42, 0.7));
-  box-shadow: 0 20px 36px rgba(239, 68, 68, 0.28);
+  border-color: rgba(248, 113, 113, 0.35);
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.9), rgba(254, 215, 170, 0.8));
+  box-shadow: 0 20px 38px rgba(248, 113, 113, 0.25);
 }
 
 .lexitwist-summary-word--missed .lexitwist-summary-word-status {
-  color: rgba(252, 165, 165, 0.85);
+  color: #b91c1c;
 }
 
 .lexitwist-bonus-summary {
@@ -436,8 +438,8 @@ body {
   gap: 0.75rem;
   padding: 1.1rem 1.35rem;
   border-radius: 1.25rem;
-  border: 1px solid rgba(250, 204, 21, 0.32);
-  background: linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(15, 23, 42, 0.65));
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.8));
 }
 
 .lexitwist-bonus-list {
@@ -452,9 +454,9 @@ body {
   justify-content: center;
   padding: 0.35rem 0.75rem;
   border-radius: 9999px;
-  border: 1px solid rgba(250, 204, 21, 0.45);
-  background: rgba(253, 224, 71, 0.2);
-  color: #fef08a;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.18);
+  color: #b45309;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.35em;

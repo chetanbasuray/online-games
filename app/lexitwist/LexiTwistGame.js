@@ -201,11 +201,7 @@ export default function LexiTwistGame() {
     const loadDictionary = async () => {
       try {
         setDictionaryStatus("loading");
-        const loader = new Function(
-          "specifier",
-          "return import(specifier);",
-        );
-        const module = await loader("word-list-english");
+        const module = await import("word-list-english");
         if (cancelled) return;
         const normalized = normalizeWords(module);
         if (normalized.length === 0) {

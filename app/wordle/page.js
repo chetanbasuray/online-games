@@ -23,7 +23,6 @@ export default function WordlePage() {
   const resultTimeoutRef = useRef(null);
   const currentGameRef = useRef(0);
   const previousSolutionRef = useRef(null);
-  const solutionRef = useRef("");
 
   const clearFlipTimeouts = () => {
     flipTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -86,10 +85,6 @@ export default function WordlePage() {
   };
 
   useEffect(() => startNewGame(), []);
-
-  useEffect(() => {
-    solutionRef.current = solution;
-  }, [solution]);
 
   useEffect(() => () => {
     clearFlipTimeouts();
@@ -249,14 +244,12 @@ export default function WordlePage() {
   const boardDataId = `wordle-${gameId}`;
 
   const handleNewGameClick = () => {
-    const previousSolution = solutionRef.current;
-    startNewGame();
+    if (typeof window !== "undefined") {
+      window.location.reload();
+      return;
+    }
 
-    setTimeout(() => {
-      if (solutionRef.current === previousSolution && typeof window !== "undefined") {
-        window.location.reload();
-      }
-    }, 400);
+    startNewGame();
   };
 
   return (

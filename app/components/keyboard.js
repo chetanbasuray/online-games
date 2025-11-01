@@ -6,7 +6,7 @@ const ROWS = [
   ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "DELETE"],
 ];
 
-export default function Keyboard({ onKeyPress, letterStatus = {}, className = "", style }) {
+export default function Keyboard({ onKeyPress, letterStatus = {}, className = "", style, disabled = false }) {
   const getKeyStatus = (letter) => {
     const status = letterStatus[letter];
     if (status === "correct" || status === "present" || status === "absent") {
@@ -16,6 +16,7 @@ export default function Keyboard({ onKeyPress, letterStatus = {}, className = ""
   };
 
   const handlePress = (value) => {
+    if (disabled) return;
     if (typeof onKeyPress === "function") {
       onKeyPress(value);
     }
@@ -51,6 +52,8 @@ export default function Keyboard({ onKeyPress, letterStatus = {}, className = ""
                     ? "Submit guess"
                     : `Letter ${label}`
                 }
+                disabled={disabled}
+                aria-disabled={disabled ? "true" : undefined}
               >
                 {label}
               </button>

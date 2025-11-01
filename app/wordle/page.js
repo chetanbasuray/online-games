@@ -16,12 +16,13 @@ export default function WordlePage() {
   const [currentGuess, setCurrentGuess] = useState("");
   const [flippedTiles, setFlippedTiles] = useState([]);
   const [gameId, setGameId] = useState(0);
-  const [isWin, setIsWin] = useState(false);
+  const [gameState, setGameState] = useState("idle");
   const [message, setMessage] = useState("");
   const [letterStatus, setLetterStatus] = useState({});
   const flipTimeoutsRef = useRef([]);
   const resultTimeoutRef = useRef(null);
   const currentGameRef = useRef(0);
+  const previousSolutionRef = useRef(null);
 
   const clearFlipTimeouts = () => {
     flipTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
@@ -36,20 +37,51 @@ export default function WordlePage() {
   };
 
   // Pick random word
+  const pickNextSolution = () => {
+    if (!WORDS || WORDS.length === 0) {
+      return "";
+    }
+
+    if (WORDS.length === 1) {
+      return WORDS[0];
+    }
+
+    let candidate = previousSolutionRef.current;
+    while (candidate === previousSolutionRef.current) {
+      candidate = WORDS[Math.floor(Math.random() * WORDS.length)];
+    }
+
+    return candidate;
+  };
+
   const startNewGame = () => {
     clearFlipTimeouts();
     clearResultTimeout();
     const nextGameId = currentGameRef.current + 1;
     currentGameRef.current = nextGameId;
     setGameId(nextGameId);
-    const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-    setSolution(word);
+    const word = pickNextSolution();
+    if (!word) {
+      previousSolutionRef.current = null;
+      setSolution("");
+      setGuesses([]);
+      setCurrentGuess("");
+      setFlippedTiles([]);
+      setLetterStatus({});
+      setMessage("No Wordle puzzles are available right now. Please try again later.");
+      setGameState("idle");
+      return;
+    }
+
+    const normalizedWord = word.toUpperCase();
+    previousSolutionRef.current = normalizedWord;
+    setSolution(normalizedWord);
     setGuesses([]);
     setCurrentGuess("");
     setFlippedTiles([]);
-    setIsWin(false);
     setMessage("");
     setLetterStatus({});
+    setGameState("in-progress");
   };
 
   useEffect(() => startNewGame(), []);
@@ -62,7 +94,7 @@ export default function WordlePage() {
   // Keyboard input
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (isWin) return;
+      if (gameState !== "in-progress") return;
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) addLetter(key);
       else if (key === "BACKSPACE") removeLetter();
@@ -70,12 +102,16 @@ export default function WordlePage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentGuess, guesses, isWin]);
+  }, [currentGuess, guesses, gameState]);
 
   const addLetter = (letter) => {
+    if (gameState !== "in-progress") return;
     if (currentGuess.length < WORD_LENGTH) setCurrentGuess((prev) => prev + letter);
   };
-  const removeLetter = () => setCurrentGuess((prev) => prev.slice(0, -1));
+  const removeLetter = () => {
+    if (gameState !== "in-progress") return;
+    setCurrentGuess((prev) => prev.slice(0, -1));
+  };
 
   const getGuessColors = (guess, solution) => {
     const result = Array(guess.length).fill("absent");
@@ -113,7 +149,7 @@ export default function WordlePage() {
   };
 
   const handleVirtualKey = (key) => {
-    if (isWin) return;
+    if (gameState !== "in-progress") return;
     if (key === "ENTER") {
       submitGuess();
       return;
@@ -126,13 +162,21 @@ export default function WordlePage() {
   };
 
   const submitGuess = async () => {
+    if (gameState !== "in-progress") return;
     const guessUpper = currentGuess.toUpperCase();
     if (guessUpper.length !== WORD_LENGTH) return;
+    if (!solution) return;
+    if (guesses.length >= MAX_GUESSES) return;
     if (!WORDS.includes(guessUpper)) {
       setMessage("Word not found!");
-      const rowDiv = document.querySelector(`.grid > div:nth-child(${guesses.length + 1})`);
+      const boardSelector = `[data-game-id="wordle-${gameId}"]`;
+      const boardElement = typeof document !== "undefined" ? document.querySelector(boardSelector) : null;
+      const rowDiv = boardElement?.querySelector(`.wordle-row:nth-child(${guesses.length + 1})`);
       if (rowDiv) rowDiv.classList.add("shake");
-      setTimeout(() => { if (rowDiv) rowDiv.classList.remove("shake"); setMessage(""); }, 500);
+      setTimeout(() => {
+        if (rowDiv) rowDiv.classList.remove("shake");
+        setMessage("");
+      }, 500);
       return;
     }
 
@@ -172,23 +216,32 @@ export default function WordlePage() {
       }
       const colors = getGuessColors(guessUpper, solution);
       if (colors.every((c) => c === "correct")) {
-        setIsWin(true);
         setMessage("🎉 You guessed it!");
+        setGameState("won");
         const confettiModule = await import("canvas-confetti");
         confettiModule.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
       } else if (newGuesses.length === MAX_GUESSES) {
         setMessage(`😞 The word was ${solution}`);
+        setGameState("lost");
       }
       resultTimeoutRef.current = null;
     }, WORD_LENGTH * 300 + 50);
   };
 
   const guessesRemaining = Math.max(0, MAX_GUESSES - guesses.length);
-  const gameStatus = isWin
-    ? "Solved"
-    : guesses.length === MAX_GUESSES
-      ? "Ended"
-      : "In progress";
+  const statusLabels = {
+    idle: "Loading",
+    "in-progress": "In progress",
+    won: "Solved",
+    lost: "Ended",
+  };
+  const gameStatus = statusLabels[gameState] || "In progress";
+  const isGameActive = gameState === "in-progress";
+  const hasSolution = solution.length === WORD_LENGTH;
+  const isSubmitDisabled = !isGameActive || currentGuess.length !== WORD_LENGTH;
+  const isDeleteDisabled = !isGameActive || currentGuess.length === 0;
+  const keyboardDisabled = !isGameActive || !hasSolution;
+  const boardDataId = `wordle-${gameId}`;
 
   return (
     <div className="min-h-screen px-4 py-10 text-slate-900">
@@ -221,7 +274,13 @@ export default function WordlePage() {
 
           <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/60 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col items-center gap-6">
-              <div key={gameId} className="wordle-board" role="grid" aria-label="Wordle board">
+              <div
+                key={gameId}
+                className="wordle-board"
+                role="grid"
+                aria-label="Wordle board"
+                data-game-id={boardDataId}
+              >
                 {Array.from({ length: MAX_GUESSES }).map((_, row) => {
                   const guess = guesses[row] || (row === guesses.length ? currentGuess : "");
                   const isCurrentRow = row === guesses.length;
@@ -260,20 +319,22 @@ export default function WordlePage() {
                 })}
               </div>
 
-              <Keyboard onKeyPress={handleVirtualKey} letterStatus={letterStatus} />
+              <Keyboard onKeyPress={handleVirtualKey} letterStatus={letterStatus} disabled={keyboardDisabled} />
 
               <div className="flex flex-wrap justify-center gap-2">
                 <button
                   onClick={submitGuess}
-                  className="rounded-full border border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-800 shadow-sm transition hover:brightness-110"
+                  className="rounded-full border border-transparent bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-800 shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:brightness-100"
                   type="button"
+                  disabled={isSubmitDisabled}
                 >
                   Submit Guess
                 </button>
                 <button
                   onClick={removeLetter}
-                  className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700"
+                  className="rounded-full border border-slate-300/80 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-600 shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-slate-300 disabled:hover:bg-white/80 disabled:hover:text-slate-600"
                   type="button"
+                  disabled={isDeleteDisabled}
                 >
                   Delete Letter
                 </button>

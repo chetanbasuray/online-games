@@ -361,66 +361,71 @@ export default function TetrisGame() {
     [board, currentPiece, position, isPaused, isGameOver],
   );
 
-  const lockPiece = useCallback(() => {
-    if (!currentPiece) {
-      return;
-    }
+  const lockPiece = useCallback(
+    (piecePosition = position) => {
+      if (!currentPiece) {
+        return;
+      }
 
-    const settledBoard = board.map((row) => [...row]);
-    let overflowedTop = false;
-    getPieceCells(currentPiece.type, currentPiece.rotation).forEach(
-      ({ x, y }) => {
-        const boardX = position.x + x;
-        const boardY = position.y + y;
-        if (boardY < 0) {
-          overflowedTop = true;
-          return;
-        }
+      const settledBoard = board.map((row) => [...row]);
+      let overflowedTop = false;
 
-        if (
-          boardX >= 0 &&
-          boardX < BOARD_WIDTH &&
-          boardY < BOARD_HEIGHT
-        ) {
-          settledBoard[boardY][boardX] = currentPiece.type;
-        }
-      },
-    );
+      getPieceCells(currentPiece.type, currentPiece.rotation).forEach(
+        ({ x, y }) => {
+          const boardX = piecePosition.x + x;
+          const boardY = piecePosition.y + y;
 
-    if (overflowedTop) {
-      setBoard(settledBoard);
-      setCurrentPiece(null);
-      setIsGameOver(true);
-      setIsPaused(false);
-      return;
-    }
+          if (boardY < 0) {
+            overflowedTop = true;
+            return;
+          }
 
-    const { board: clearedBoard, linesCleared: clearedLines } =
-      clearCompletedLines(settledBoard);
+          if (
+            boardX >= 0 &&
+            boardX < BOARD_WIDTH &&
+            boardY < BOARD_HEIGHT
+          ) {
+            settledBoard[boardY][boardX] = currentPiece.type;
+          }
+        },
+      );
 
-    if (clearedLines > 0) {
-      setScore((prev) => prev + getLineScore(clearedLines, level));
-      setLinesCleared((prev) => prev + clearedLines);
-    }
+      if (overflowedTop) {
+        setBoard(settledBoard);
+        setCurrentPiece(null);
+        setIsGameOver(true);
+        setIsPaused(false);
+        return;
+      }
 
-    const startPosition = createInitialPosition();
-    const pieceToSpawn = nextPiece ?? getRandomPiece();
-    const upcomingPiece = getRandomPiece();
+      const { board: clearedBoard, linesCleared: clearedLines } =
+        clearCompletedLines(settledBoard);
 
-    if (checkCollision(clearedBoard, pieceToSpawn, startPosition)) {
+      if (clearedLines > 0) {
+        setScore((prev) => prev + getLineScore(clearedLines, level));
+        setLinesCleared((prev) => prev + clearedLines);
+      }
+
+      const startPosition = createInitialPosition();
+      const pieceToSpawn = nextPiece ?? getRandomPiece();
+      const upcomingPiece = getRandomPiece();
+
+      if (checkCollision(clearedBoard, pieceToSpawn, startPosition)) {
+        setBoard(clearedBoard);
+        setCurrentPiece(null);
+        setIsGameOver(true);
+        setIsPaused(false);
+        setPosition(startPosition);
+        return;
+      }
+
       setBoard(clearedBoard);
-      setCurrentPiece(null);
-      setIsGameOver(true);
-      setIsPaused(false);
+      setCurrentPiece(pieceToSpawn);
+      setNextPiece(upcomingPiece);
       setPosition(startPosition);
-      return;
-    }
-
-    setBoard(clearedBoard);
-    setCurrentPiece(pieceToSpawn);
-    setNextPiece(upcomingPiece);
-    setPosition(startPosition);
-  }, [board, currentPiece, level, nextPiece, position]);
+    },
+    [board, currentPiece, level, nextPiece, position],
+  );
 
   const dropPiece = useCallback(() => {
     if (isPaused || isGameOver || !currentPiece) {
@@ -437,17 +442,18 @@ export default function TetrisGame() {
       return;
     }
 
-    let dropDistance = 0;
-    while (movePiece(0, 1)) {
-      dropDistance += 1;
+    const finalPosition = projectGhostPosition(board, currentPiece, position);
+    if (!finalPosition) {
+      return;
     }
 
+    const dropDistance = Math.max(0, finalPosition.y - position.y);
     if (dropDistance > 0) {
       setScore((prev) => prev + dropDistance * 2);
     }
 
-    lockPiece();
-  }, [currentPiece, isGameOver, isPaused, lockPiece, movePiece]);
+    lockPiece(finalPosition);
+  }, [board, currentPiece, isGameOver, isPaused, lockPiece, position]);
 
   const togglePause = useCallback(() => {
     if (isGameOver) {

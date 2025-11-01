@@ -30,4 +30,11 @@ export const GAMES = [
     badge: "New",
     description: "Rotate, drop, and stack colorful tetrominoes in a fast-paced challenge.",
   },
+  {
+    name: "Word Forge",
+    path: "/wordforge",
+    isPlayable: true,
+    badge: "New",
+    description: "Spin eight glowing letters into a cascade of words and chase the score goal.",
+  },
 ];

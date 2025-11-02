@@ -361,6 +361,52 @@ export default function HangmanPage() {
   const [customWordInput, setCustomWordInput] = useState("");
   const [showCustomWord, setShowCustomWord] = useState(false);
 
+  const letterCount = useMemo(
+    () => secretWord.replace(/[^A-Z]/g, "").length,
+    [secretWord]
+  );
+
+  const longestSegmentLength = useMemo(() => {
+    if (!secretWord) return 0;
+    return secretWord
+      .split(/\s+/)
+      .reduce((longest, segment) => {
+        const cleaned = segment.replace(/[^A-Z]/g, "");
+        return Math.max(longest, cleaned.length);
+      }, 0);
+  }, [secretWord]);
+
+  const tileDimensions = useMemo(() => {
+    if (!secretWord) {
+      return {
+        width: 3.25,
+        height: 3.5,
+        fontSize: 1.5,
+        spacerWidth: 2.3,
+      };
+    }
+
+    if (longestSegmentLength > 18 || letterCount > 26) {
+      return { width: 2, height: 2.8, fontSize: 1.15, spacerWidth: 1.6 };
+    }
+    if (longestSegmentLength > 16 || letterCount > 22) {
+      return { width: 2.2, height: 3, fontSize: 1.25, spacerWidth: 1.8 };
+    }
+    if (longestSegmentLength > 14 || letterCount > 18) {
+      return { width: 2.4, height: 3.1, fontSize: 1.35, spacerWidth: 1.95 };
+    }
+    if (longestSegmentLength > 12 || letterCount > 14) {
+      return { width: 2.7, height: 3.3, fontSize: 1.4, spacerWidth: 2.15 };
+    }
+
+    return { width: 3.05, height: 3.45, fontSize: 1.5, spacerWidth: 2.35 };
+  }, [letterCount, longestSegmentLength, secretWord]);
+
+  const shouldStackFigure = useMemo(() => {
+    if (!secretWord) return false;
+    return longestSegmentLength > 11 || letterCount > 16;
+  }, [letterCount, longestSegmentLength, secretWord]);
+
   const uniqueLetters = useMemo(
     () => getUniqueLetters(secretWord),
     [secretWord]
@@ -524,7 +570,11 @@ export default function HangmanPage() {
         return (
           <span
             key={`${char}-${index}`}
-            className="flex h-14 min-w-[2.75rem] items-center justify-center rounded-lg border-2 border-transparent text-xl font-medium text-slate-500 sm:h-16 sm:min-w-[3.25rem]"
+            className="flex items-center justify-center rounded-lg border-2 border-transparent text-xl font-medium text-slate-500"
+            style={{
+              height: `${tileDimensions.height}rem`,
+              minWidth: `${tileDimensions.spacerWidth}rem`,
+            }}
           >
             {char === " " ? "\u00A0" : char}
           </span>
@@ -537,9 +587,14 @@ export default function HangmanPage() {
       return (
         <span
           key={`${char}-${index}`}
-          className={`flex h-14 min-w-[2.75rem] items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide sm:h-16 sm:min-w-[3.25rem] sm:text-2xl ${
+          className={`flex items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide ${
             shouldReveal ? "border-blue-400 text-slate-900" : "border-slate-300 text-transparent"
           }`}
+          style={{
+            height: `${tileDimensions.height}rem`,
+            minWidth: `${tileDimensions.width}rem`,
+            fontSize: `${tileDimensions.fontSize}rem`,
+          }}
         >
           {shouldReveal ? char : "_"}
         </span>
@@ -625,8 +680,14 @@ export default function HangmanPage() {
 
               {gameState !== "setup" ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="w-full max-w-[260px] rounded-2xl border border-slate-200 bg-white px-5 py-6 text-center shadow-inner sm:max-w-[300px]">
+                  <div
+                    className={`flex w-full flex-col items-center gap-6 ${
+                      shouldStackFigure
+                        ? "sm:flex-col"
+                        : "sm:flex-row sm:items-start sm:justify-between"
+                    }`}
+                  >
+                    <div className="w-full max-w-[260px] flex-shrink-0 rounded-2xl border border-slate-200 bg-white px-5 py-6 text-center shadow-inner sm:max-w-[300px]">
                       <HangmanFigure wrongGuesses={wrongGuesses} gameState={gameState} />
                       <div className="mt-4 flex flex-col items-center gap-2 text-sm font-semibold text-slate-600">
                         <div className="flex items-center justify-center gap-2 text-center">
@@ -642,7 +703,7 @@ export default function HangmanPage() {
                         ) : null}
                       </div>
                     </div>
-                    <div className="flex-1 space-y-4 text-center sm:text-left">
+                    <div className="flex-1 min-w-0 space-y-4 text-center sm:w-full sm:text-left">
                       <div className="flex max-w-full flex-nowrap justify-center gap-2 overflow-x-auto pb-1 sm:justify-start">
                         {renderWordTiles()}
                       </div>

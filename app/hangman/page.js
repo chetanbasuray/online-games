@@ -8,14 +8,93 @@ import { HANGMAN_WORDS } from "./words";
 
 const showSupportWidget = isGamePlayable("/hangman");
 
+const EMPTY_SLOT = "   "; // figure spaces to keep emoji aligned
+
 const HANGMAN_STAGES = [
-  ` +---+\n |   |\n     |\n     |\n     |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n     |\n     |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n |   |\n     |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n/|   |\n     |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n/|\\  |\n     |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n/|\\  |\n/    |\n     |\n=========`,
-  ` +---+\n |   |\n O   |\n/|\\  |\n/ \\  |\n     |\n=========`
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      `🪜   ${EMPTY_SLOT}`,
+      `🪜   ${EMPTY_SLOT}`,
+      `🪜   ${EMPTY_SLOT}`,
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "😄",
+    caption: "Fresh canvas! No misses yet.",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   🙂",
+      `🪜   ${EMPTY_SLOT}`,
+      `🪜   ${EMPTY_SLOT}`,
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "🙂",
+    caption: "A gentle breeze rustles the rope…",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   😯",
+      "🪜   │",
+      `🪜   ${EMPTY_SLOT}`,
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "😯",
+    caption: "Careful now—the torso is forming!",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   😟",
+      "🪜  /│",
+      `🪜   ${EMPTY_SLOT}`,
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "😟",
+    caption: "One arm is out—guess wisely!",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   😣",
+      "🪜  /│\\",
+      `🪜   ${EMPTY_SLOT}`,
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "😣",
+    caption: "Both arms flail for help!",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   😰",
+      "🪜  /│\\",
+      "🪜  /",
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "😰",
+    caption: "A leg appears—time is running out!",
+  },
+  {
+    art: [
+      "🪵🪵🪵🪵🪵",
+      "🪜   🪢",
+      "🪜   💀",
+      "🪜  /│\\",
+      "🪜  / \\",
+      "🪨🪨🪨🪨🪨",
+    ],
+    mood: "💀",
+    caption: "Oh no! The hangman is complete.",
+  },
 ];
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -71,6 +150,7 @@ export default function HangmanPage() {
   );
 
   const guessesRemaining = MAX_WRONG_GUESSES - wrongGuesses;
+  const currentStage = formatStage(wrongGuesses);
 
   const startSoloGame = () => {
     const randomWord = normalizeWord(pickRandomWord());
@@ -205,7 +285,10 @@ export default function HangmanPage() {
       const isLetter = /[A-Z]/.test(char);
       if (!isLetter) {
         return (
-          <span key={`${char}-${index}`} className="px-1 text-xl font-medium text-slate-500">
+          <span
+            key={`${char}-${index}`}
+            className="flex h-14 min-w-[2.75rem] items-center justify-center rounded-lg border-2 border-transparent text-xl font-medium text-slate-500 sm:h-16 sm:min-w-[3.25rem]"
+          >
             {char === " " ? "\u00A0" : char}
           </span>
         );
@@ -217,7 +300,7 @@ export default function HangmanPage() {
       return (
         <span
           key={`${char}-${index}`}
-          className={`flex h-14 w-10 items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide sm:h-16 sm:w-12 sm:text-2xl ${
+          className={`flex h-14 min-w-[2.75rem] items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide sm:h-16 sm:min-w-[3.25rem] sm:text-2xl ${
             shouldReveal ? "border-blue-400 text-slate-900" : "border-slate-300 text-transparent"
           }`}
         >
@@ -306,11 +389,19 @@ export default function HangmanPage() {
               {gameState !== "setup" ? (
                 <div className="space-y-6">
                   <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
-                    <pre className="w-full max-w-[220px] rounded-xl border border-slate-200 bg-white px-6 py-4 text-center font-mono text-lg leading-6 text-slate-800 shadow-inner sm:max-w-[260px]">
-                      {formatStage(wrongGuesses)}
-                    </pre>
+                    <div className="w-full max-w-[240px] rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-inner sm:max-w-[280px]">
+                      <div className="space-y-1 font-mono text-lg leading-6 text-slate-800">
+                        {currentStage.art.map((line) => (
+                          <div key={line}>{line}</div>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex items-center justify-center gap-2 text-sm font-semibold text-slate-600">
+                        <span className="text-2xl" aria-hidden>{currentStage.mood}</span>
+                        <span>{currentStage.caption}</span>
+                      </div>
+                    </div>
                     <div className="flex-1 space-y-4 text-center sm:text-left">
-                      <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                      <div className="flex max-w-full flex-nowrap justify-center gap-2 overflow-x-auto pb-1 sm:justify-start">
                         {renderWordTiles()}
                       </div>
                       <p className="text-sm font-semibold text-slate-600">

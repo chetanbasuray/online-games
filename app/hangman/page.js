@@ -118,6 +118,8 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
   const leftLegVisible = showFullFigure || wrongGuesses >= 5;
   const rightLegVisible = showFullFigure || wrongGuesses >= 6;
 
+  const isWon = gameState === "won";
+
   let expression = "calm";
   if (gameState === "won") {
     expression = "happy";
@@ -164,18 +166,34 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
           <line x1="60" y1="220" x2="60" y2="40" />
           <line x1="60" y1="40" x2="150" y2="40" />
           <line x1="100" y1="40" x2="60" y2="80" />
-          <line x1="150" y1="40" x2="150" y2="72" className="rope" />
+          <line x1="150" y1="40" x2="150" y2="72" className="rope rope-intact" />
+          <line
+            x1="150"
+            y1="40"
+            x2="150"
+            y2="62"
+            className={`rope rope-top ${isWon ? "visible" : ""}`}
+          />
         </g>
 
-        <g className="character">
-          <circle
-            className={`part head ${headVisible ? "visible" : ""}`}
-            cx="150"
-            cy="90"
-            r="20"
-          />
+        <g className={`character ${isWon ? "is-won" : ""}`}>
+          <g className="character-inner">
+            <line
+              className={`rope-tether ${isWon ? "is-broken" : ""}`}
+              x1="150"
+              y1="72"
+              x2="150"
+              y2="82"
+            />
 
-          <g className={`part face ${headVisible ? "visible" : ""}`}>
+            <circle
+              className={`part head ${headVisible ? "visible" : ""}`}
+              cx="150"
+              cy="90"
+              r="20"
+            />
+
+            <g className={`part face ${headVisible ? "visible" : ""}`}>
             {expression === "defeated" ? (
               <>
                 <line x1="142" y1="84" x2="146" y2="88" className="eye-line" />
@@ -235,6 +253,7 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
             y2="190"
           />
         </g>
+        </g>
       </svg>
 
       <style jsx>{`
@@ -260,9 +279,32 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
         .gallows .rope {
           stroke-width: 5px;
           stroke: #f59e0b;
+          stroke-linecap: round;
+          transition: opacity 0.3s ease;
         }
 
-        .character .part {
+        .gallows .rope-intact {
+          stroke-dasharray: 0 0;
+          transform-origin: 150px 40px;
+          transition: stroke-dasharray 0.35s ease-out, stroke-dashoffset 0.35s ease-out,
+            opacity 0.3s ease-out;
+        }
+
+        .gallows .rope-top {
+          opacity: 0;
+          transform-origin: 150px 40px;
+          transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .character {
+          transform-origin: 150px 72px;
+        }
+
+        .character-inner {
+          transform-origin: 150px 200px;
+        }
+
+        .character-inner .part {
           opacity: 0;
           transition: opacity 0.4s ease, transform 0.4s ease;
           stroke: #1e293b;
@@ -271,7 +313,7 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
           transform: translateY(-8px);
         }
 
-        .character .part.visible {
+        .character-inner .part.visible {
           opacity: 1;
           transform: translateY(0);
         }
@@ -308,12 +350,40 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
           stroke-linecap: round;
         }
 
+        .character-inner .rope-tether {
+          stroke: #f59e0b;
+          stroke-width: 5px;
+          stroke-linecap: round;
+          transition: transform 0.45s ease-out, opacity 0.35s ease-out 0.1s;
+          transform-origin: 150px 72px;
+        }
+
         .limb {
           transform-origin: 150px 110px;
         }
 
+        .hangman-figure.is-won .gallows .rope-intact {
+          stroke-dasharray: 0 200;
+          stroke-dashoffset: -200;
+          opacity: 0;
+        }
+
+        .hangman-figure.is-won .gallows .rope-top {
+          opacity: 1;
+          transform: translateY(2px) rotate(-8deg);
+        }
+
         .hangman-figure.is-won .character {
-          animation: hangman-celebrate 1.6s ease-in-out infinite;
+          animation: hangman-drop 0.65s ease-out forwards;
+        }
+
+        .hangman-figure.is-won .character-inner {
+          animation: hangman-joy 1.6s ease-in-out 0.65s infinite;
+        }
+
+        .hangman-figure.is-won .character .rope-tether {
+          transform: rotate(70deg) translateY(-12px);
+          opacity: 0;
         }
 
         .hangman-figure.is-won .mouth.happy {
@@ -337,21 +407,36 @@ const HangmanFigure = ({ wrongGuesses, gameState }) => {
           stroke: #dc2626;
         }
 
-        @keyframes hangman-celebrate {
+        @keyframes hangman-drop {
           0% {
-            transform: translateY(0px);
+            transform: translateY(0) rotate(0deg);
+          }
+          55% {
+            transform: translateY(34px) rotate(6deg);
+          }
+          75% {
+            transform: translateY(18px) rotate(-4deg);
+          }
+          100% {
+            transform: translateY(26px) rotate(0deg);
+          }
+        }
+
+        @keyframes hangman-joy {
+          0% {
+            transform: translateY(0);
           }
           35% {
-            transform: translateY(-16px);
+            transform: translateY(-20px);
           }
           55% {
             transform: translateY(-4px);
           }
-          70% {
-            transform: translateY(-12px);
+          75% {
+            transform: translateY(-16px);
           }
           100% {
-            transform: translateY(0px);
+            transform: translateY(0);
           }
         }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GameFooter from "../components/GameFooter";
 import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
@@ -49,6 +49,13 @@ const FIGURE_STEPS = [
 const MAX_WRONG_GUESSES = FIGURE_STEPS[FIGURE_STEPS.length - 1].wrong;
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+const DEFAULT_TILE_METRICS = {
+  baseWidthRem: 3.05,
+  maxWidthRem: 3.05,
+  heightRem: 3.45,
+  fontRem: 1.5,
+};
+
 const getFigureStage = (wrongGuesses) => {
   const clamped = Math.max(0, Math.min(wrongGuesses, MAX_WRONG_GUESSES));
   let stage = FIGURE_STEPS[0];
@@ -87,6 +94,19 @@ const getUniqueLetters = (word) => {
     }
   });
   return letters;
+};
+
+const getCharacterWeight = (char) => {
+  if (/[A-Z]/.test(char)) {
+    return 1;
+  }
+  if (char === " ") {
+    return 0.55;
+  }
+  if (char === "-") {
+    return 0.75;
+  }
+  return 0.65;
 };
 
 const HangmanFigure = ({ wrongGuesses, gameState }) => {
@@ -360,6 +380,10 @@ export default function HangmanPage() {
   const [message, setMessage] = useState("");
   const [customWordInput, setCustomWordInput] = useState("");
   const [showCustomWord, setShowCustomWord] = useState(false);
+  const tilesContainerRef = useRef(null);
+  const [tileMetrics, setTileMetrics] = useState(DEFAULT_TILE_METRICS);
+  const [wordSpacingMode, setWordSpacingMode] = useState("standard");
+  const [forceStackFigure, setForceStackFigure] = useState(false);
 
   const letterCount = useMemo(
     () => secretWord.replace(/[^A-Z]/g, "").length,
@@ -376,41 +400,144 @@ export default function HangmanPage() {
       }, 0);
   }, [secretWord]);
 
-  const tileDimensions = useMemo(() => {
-    if (!secretWord) {
-      return {
-        width: 3.25,
-        height: 3.5,
-        fontSize: 1.5,
-        spacerWidth: 2.3,
-      };
-    }
-
-    if (longestSegmentLength > 18 || letterCount > 26) {
-      return { width: 2, height: 2.8, fontSize: 1.15, spacerWidth: 1.6 };
-    }
-    if (longestSegmentLength > 16 || letterCount > 22) {
-      return { width: 2.2, height: 3, fontSize: 1.25, spacerWidth: 1.8 };
-    }
-    if (longestSegmentLength > 14 || letterCount > 18) {
-      return { width: 2.4, height: 3.1, fontSize: 1.35, spacerWidth: 1.95 };
-    }
-    if (longestSegmentLength > 12 || letterCount > 14) {
-      return { width: 2.7, height: 3.3, fontSize: 1.4, spacerWidth: 2.15 };
-    }
-
-    return { width: 3.05, height: 3.45, fontSize: 1.5, spacerWidth: 2.35 };
+  const shouldStackByLength = useMemo(() => {
+    if (!secretWord) return false;
+    return longestSegmentLength > 11 || letterCount > 16;
   }, [letterCount, longestSegmentLength, secretWord]);
 
   const shouldStackFigure = useMemo(() => {
     if (!secretWord) return false;
-    return longestSegmentLength > 11 || letterCount > 16;
-  }, [letterCount, longestSegmentLength, secretWord]);
+    return shouldStackByLength || forceStackFigure;
+  }, [forceStackFigure, secretWord, shouldStackByLength]);
+
+  useEffect(() => {
+    setForceStackFigure(false);
+    setWordSpacingMode("standard");
+    if (!secretWord) {
+      setTileMetrics(DEFAULT_TILE_METRICS);
+    }
+  }, [secretWord]);
 
   const uniqueLetters = useMemo(
     () => getUniqueLetters(secretWord),
     [secretWord]
   );
+
+  const recalculateTileMetrics = useCallback(() => {
+    if (!secretWord) {
+      setTileMetrics(DEFAULT_TILE_METRICS);
+      setWordSpacingMode("standard");
+      return;
+    }
+
+    const container = tilesContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const containerWidth = container.clientWidth;
+    if (!containerWidth) {
+      return;
+    }
+
+    const characters = [...secretWord];
+    const weights = characters.map((char) => getCharacterWeight(char));
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+    if (totalWeight <= 0) {
+      setTileMetrics(DEFAULT_TILE_METRICS);
+      setWordSpacingMode("standard");
+      return;
+    }
+
+    const computeBaseWidth = (gapPx) => {
+      const totalGap = Math.max(characters.length - 1, 0) * gapPx;
+      const available = Math.max(containerWidth - totalGap, 0);
+      return available / totalWeight;
+    };
+
+    const STANDARD_GAP_PX = 8; // 0.5rem
+    const COMPACT_GAP_PX = 6; // 0.375rem
+    const TIGHT_GAP_PX = 4; // 0.25rem
+
+    let baseWidthPx = computeBaseWidth(STANDARD_GAP_PX);
+    let nextSpacingMode = "standard";
+
+    if (baseWidthPx < 36 && characters.length > 10) {
+      baseWidthPx = computeBaseWidth(COMPACT_GAP_PX);
+      nextSpacingMode = "compact";
+
+      if (baseWidthPx < 28 && characters.length > 14) {
+        baseWidthPx = computeBaseWidth(TIGHT_GAP_PX);
+        nextSpacingMode = "tight";
+      }
+    }
+
+    const MIN_BASE_WIDTH_PX = 6;
+    baseWidthPx = Math.max(baseWidthPx, MIN_BASE_WIDTH_PX);
+
+    const comfortableWidthPx = Math.max(26, Math.min(baseWidthPx, 52));
+    const heightPx = Math.min(Math.max(baseWidthPx * 1.05, 28), 56);
+    const fontPx = Math.min(
+      Math.max(baseWidthPx * 0.7, 10),
+      baseWidthPx * 0.9,
+      30
+    );
+
+    setTileMetrics((previous) => {
+      const next = {
+        baseWidthRem: baseWidthPx / 16 || DEFAULT_TILE_METRICS.baseWidthRem,
+        maxWidthRem: comfortableWidthPx / 16,
+        heightRem: heightPx / 16,
+        fontRem: fontPx / 16,
+      };
+
+      const hasMeaningfulChange =
+        Math.abs(previous.baseWidthRem - next.baseWidthRem) > 0.01 ||
+        Math.abs(previous.maxWidthRem - next.maxWidthRem) > 0.01 ||
+        Math.abs(previous.heightRem - next.heightRem) > 0.01 ||
+        Math.abs(previous.fontRem - next.fontRem) > 0.01;
+
+      return hasMeaningfulChange ? next : previous;
+    });
+
+    setWordSpacingMode((prev) => (prev === nextSpacingMode ? prev : nextSpacingMode));
+
+    if (!shouldStackByLength && baseWidthPx < 30 && !forceStackFigure) {
+      setForceStackFigure(true);
+    }
+  }, [forceStackFigure, secretWord, shouldStackByLength]);
+
+  useEffect(() => {
+    recalculateTileMetrics();
+
+    if (!secretWord) {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      recalculateTileMetrics();
+    };
+
+    const observerTarget = tilesContainerRef.current;
+    let resizeObserver;
+
+    if (observerTarget && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      resizeObserver.observe(observerTarget);
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [recalculateTileMetrics, secretWord]);
 
   const wrongLetters = useMemo(
     () => guessedLetters.filter((letter) => !secretWord.includes(letter)),
@@ -564,17 +691,41 @@ export default function HangmanPage() {
       return null;
     }
 
+    const baseWidthRem =
+      tileMetrics.baseWidthRem && tileMetrics.baseWidthRem > 0
+        ? tileMetrics.baseWidthRem
+        : DEFAULT_TILE_METRICS.baseWidthRem;
+    const maxWidthRem =
+      tileMetrics.maxWidthRem && tileMetrics.maxWidthRem > 0
+        ? tileMetrics.maxWidthRem
+        : DEFAULT_TILE_METRICS.maxWidthRem;
+    const tileHeightRem =
+      tileMetrics.heightRem && tileMetrics.heightRem > 0
+        ? tileMetrics.heightRem
+        : DEFAULT_TILE_METRICS.heightRem;
+    const tileFontRem =
+      tileMetrics.fontRem && tileMetrics.fontRem > 0
+        ? tileMetrics.fontRem
+        : DEFAULT_TILE_METRICS.fontRem;
+
     return secretWord.split("").map((char, index) => {
-      const isLetter = /[A-Z]/.test(char);
-      if (!isLetter) {
+      const weight = getCharacterWeight(char);
+      const tileWidthRem = baseWidthRem * weight;
+      const tileMaxWidthRem = maxWidthRem * weight;
+
+      if (!/[A-Z]/.test(char)) {
         return (
           <span
             key={`${char}-${index}`}
-            className="flex items-center justify-center rounded-lg border-2 border-transparent text-xl font-medium text-slate-500"
+            className="word-tile flex items-center justify-center rounded-lg border-2 border-transparent text-base font-medium text-slate-500"
             style={{
-              height: `${tileDimensions.height}rem`,
-              minWidth: `${tileDimensions.spacerWidth}rem`,
+              width: `${tileWidthRem}rem`,
+              maxWidth: `${tileMaxWidthRem}rem`,
+              height: `${tileHeightRem}rem`,
+              fontSize: `${Math.max(Math.min(tileFontRem * 0.9, tileFontRem), 0.5)}rem`,
+              lineHeight: 1,
             }}
+            aria-hidden={char === " "}
           >
             {char === " " ? "\u00A0" : char}
           </span>
@@ -587,13 +738,15 @@ export default function HangmanPage() {
       return (
         <span
           key={`${char}-${index}`}
-          className={`flex items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide ${
+          className={`word-tile flex items-center justify-center rounded-lg border-2 bg-white font-semibold uppercase tracking-wide ${
             shouldReveal ? "border-blue-400 text-slate-900" : "border-slate-300 text-transparent"
           }`}
           style={{
-            height: `${tileDimensions.height}rem`,
-            minWidth: `${tileDimensions.width}rem`,
-            fontSize: `${tileDimensions.fontSize}rem`,
+            width: `${tileWidthRem}rem`,
+            maxWidth: `${tileMaxWidthRem}rem`,
+            height: `${tileHeightRem}rem`,
+            fontSize: `${tileFontRem}rem`,
+            lineHeight: 1,
           }}
         >
           {shouldReveal ? char : "_"}
@@ -704,7 +857,18 @@ export default function HangmanPage() {
                       </div>
                     </div>
                     <div className="flex-1 min-w-0 space-y-4 text-center sm:w-full sm:text-left">
-                      <div className="flex max-w-full flex-nowrap justify-center gap-2 overflow-x-auto pb-1 sm:justify-start">
+                      <div
+                        ref={tilesContainerRef}
+                        className="word-row flex w-full max-w-full flex-nowrap justify-center overflow-x-auto pb-1 sm:justify-start"
+                        style={{
+                          gap:
+                            wordSpacingMode === "tight"
+                              ? "0.25rem"
+                              : wordSpacingMode === "compact"
+                              ? "0.375rem"
+                              : "0.5rem",
+                        }}
+                      >
                         {renderWordTiles()}
                       </div>
                       <p className="text-sm font-semibold text-slate-600">
@@ -805,6 +969,25 @@ export default function HangmanPage() {
           }}
           className="w-full max-w-md lg:max-w-xs lg:self-start"
         />
+
+        <style jsx>{`
+          .word-row::-webkit-scrollbar {
+            height: 6px;
+          }
+
+          .word-row::-webkit-scrollbar-thumb {
+            background-color: rgba(15, 23, 42, 0.25);
+            border-radius: 9999px;
+          }
+
+          .word-row::-webkit-scrollbar-track {
+            background-color: transparent;
+          }
+
+          .word-tile {
+            transition: width 0.2s ease, height 0.2s ease, font-size 0.2s ease;
+          }
+        `}</style>
       </div>
     </div>
   );

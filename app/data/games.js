@@ -34,7 +34,6 @@ export const GAMES = [
     name: "LexiTwist",
     path: "/lexitwist",
     isPlayable: true,
-    badge: "New",
     description:
       "Spin eight radiant letters into cascading words, unlock harder levels, and chase each round's escalating score goal.",
   },

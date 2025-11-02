@@ -20,8 +20,9 @@ export const GAMES = [
   {
     name: "Hangman",
     path: "/hangman",
-    isPlayable: false,
-    description: "Flex your vocabulary in this letter-guessing classic—coming to life soon!",
+    isPlayable: true,
+    description:
+      "Guess solo against a random word or set a secret challenge for a friend in this letter-by-letter classic.",
   },
   {
     name: "Tetris",
@@ -33,7 +34,6 @@ export const GAMES = [
     name: "LexiTwist",
     path: "/lexitwist",
     isPlayable: true,
-    badge: "New",
     description:
       "Spin eight radiant letters into cascading words, unlock harder levels, and chase each round's escalating score goal.",
   },

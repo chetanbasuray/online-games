@@ -294,6 +294,22 @@ export default function SnakeGame() {
     };
   }, [handleKeyDown]);
 
+  const handleDirectionButton = useCallback(
+    (directionKey) => {
+      if (status === "paused") {
+        return;
+      }
+
+      if (status === "idle" || status === "over") {
+        resetGame(directionKey);
+        return;
+      }
+
+      queueDirection(directionKey);
+    },
+    [queueDirection, resetGame, status],
+  );
+
   const handleTouchStart = useCallback((event) => {
     if (event.touches.length !== 1) {
       return;
@@ -345,22 +361,6 @@ export default function SnakeGame() {
       setStatus("running");
     }
   }, [status]);
-
-  const handleDirectionButton = useCallback(
-    (directionKey) => {
-      if (status === "paused") {
-        return;
-      }
-
-      if (status === "idle" || status === "over") {
-        resetGame(directionKey);
-        return;
-      }
-
-      queueDirection(directionKey);
-    },
-    [queueDirection, resetGame, status],
-  );
 
   const renderOverlay = () => {
     if (status === "running") {

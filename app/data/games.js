@@ -31,6 +31,13 @@ export const GAMES = [
     description: "Rotate, drop, and stack colorful tetrominoes in a fast-paced challenge.",
   },
   {
+    name: "Snake",
+    path: "/snake",
+    isPlayable: true,
+    description:
+      "Steer a growing neon serpent across the grid, scoop up glowing fruit, and avoid colliding with your own tail.",
+  },
+  {
     name: "LexiTwist",
     path: "/lexitwist",
     isPlayable: true,

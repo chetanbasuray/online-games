@@ -20,10 +20,11 @@ Visit [http://localhost:3000](http://localhost:3000) to launch the arcade.
 
 ## 🧩 Available Games
 
-| Game   | Path           | Highlights |
-| ------ | -------------- | ---------- |
-| Wordle | `/`            | Classic five-letter guessing with hints and streak tracking. |
-| Sudoku | `/sudoku`      | Adjustable difficulty, keyboard controls, and celebratory effects when you solve a board. |
+| Game   | Path       | Highlights |
+| ------ | ---------- | ---------- |
+| Wordle | `/`        | Classic five-letter guessing with hints and streak tracking. |
+| Sudoku | `/sudoku`  | Adjustable difficulty, keyboard controls, and celebratory effects when you solve a board. |
+| Chess  | `/chess`   | Face Stockfish with adaptive strength, local rating tracking, and optional auto-adjusted opponents. |
 
 ## 🛠️ Tech Stack
 
@@ -31,6 +32,10 @@ Visit [http://localhost:3000](http://localhost:3000) to launch the arcade.
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - Custom CSS animations for page and component transitions
 - [Tone.js](https://tonejs.github.io/) and [canvas-confetti](https://www.kirilv.com/canvas-confetti/) for sound and celebration effects
+
+## 🧠 Credits
+
+- [Stockfish](https://stockfishchess.org/) via the [stockfish.js build](https://github.com/official-stockfish/Stockfish) powers the computer opponent on the chess board. Stockfish is licensed under the GNU General Public License v3.0.
 
 ## 🤝 Contributing
 

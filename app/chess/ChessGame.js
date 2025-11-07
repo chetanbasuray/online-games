@@ -17,11 +17,12 @@ import {
   difficultyById,
   fenToBoard,
   moveDisplayList,
+  boardOrientation,
+  getSquareName,
   ratingToDifficultyId,
   sanitizeMovesList,
 } from "./utils";
 
-const PLAYER_COLOR = "w";
 const showSupportWidget = isGamePlayable("/chess");
 
 const loadStockfishWorker = async () => {
@@ -68,6 +69,7 @@ export default function ChessGame() {
   const workerUrlRef = useRef(null);
   const requestQueueRef = useRef([]);
   const moveHistoryRef = useRef([]);
+  const pendingBlackOpeningRef = useRef(false);
   const [position, setPosition] = useState({
     fen: INITIAL_FEN,
     board: fenToBoard(INITIAL_FEN),
@@ -87,12 +89,13 @@ export default function ChessGame() {
   const [computerThinking, setComputerThinking] = useState(false);
   const [lastEngineMove, setLastEngineMove] = useState(null);
   const [engineSource, setEngineSource] = useState("loading");
+  const [playerColor, setPlayerColor] = useState("w");
 
-  const isPlayerTurn = position.turn === PLAYER_COLOR && !computerThinking && !result;
+  const isPlayerTurn = position.turn === playerColor && !computerThinking && !result;
 
   const movesForDisplay = useMemo(
-    () => moveDisplayList(moveHistoryRef.current),
-    [position.fen, result]
+    () => moveDisplayList(moveHistoryRef.current, playerColor),
+    [playerColor, position.fen, result]
   );
 
   const currentDifficulty = difficultyById.get(difficultyId) ?? DIFFICULTIES[0];
@@ -105,6 +108,7 @@ export default function ChessGame() {
         history: state.history,
         autoAdjust: state.autoAdjust,
         difficultyId: state.difficultyId,
+        color: state.color ?? "w",
       });
       window.localStorage.setItem(LOCAL_STORAGE_KEY, payload);
     },
@@ -118,8 +122,9 @@ export default function ChessGame() {
       history: savedHistory,
       autoAdjust,
       difficultyId,
+      color: playerColor,
     });
-  }, [autoAdjust, difficultyId, persistProgress, rating, savedHistory]);
+  }, [autoAdjust, difficultyId, persistProgress, playerColor, rating, savedHistory]);
 
   const enqueueCommand = useCallback((command, type) => {
     const worker = workerRef.current;
@@ -186,6 +191,7 @@ export default function ChessGame() {
         history: updatedHistory,
         autoAdjust,
         difficultyId,
+        color: playerColor,
       });
       if (autoAdjust) {
         const suggested = ratingToDifficultyId(newRating);
@@ -199,7 +205,15 @@ export default function ChessGame() {
         setStatus("Drawn position reached.");
       }
     },
-    [autoAdjust, currentDifficulty.minRating, difficultyId, persistProgress, rating, savedHistory]
+    [
+      autoAdjust,
+      currentDifficulty.minRating,
+      difficultyId,
+      persistProgress,
+      playerColor,
+      rating,
+      savedHistory,
+    ]
   );
 
   const handleWorkerMessage = useCallback((event) => {
@@ -258,6 +272,7 @@ export default function ChessGame() {
 
     const initialise = async () => {
       let persistedDifficultyId = DEFAULT_DIFFICULTY_ID;
+      let persistedColor = "w";
       try {
         const savedRaw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedRaw) {
@@ -275,6 +290,10 @@ export default function ChessGame() {
             if (typeof parsed.difficultyId === "string") {
               persistedDifficultyId = parsed.difficultyId;
               setDifficultyId(parsed.difficultyId);
+            }
+            if (parsed.color === "b" || parsed.color === "w") {
+              persistedColor = parsed.color;
+              setPlayerColor(parsed.color);
             }
           } catch {
             // ignore corrupted saves
@@ -311,7 +330,12 @@ export default function ChessGame() {
           source === "local"
             ? "Your move! Offline engine is ready."
             : "Your move! Select a piece to begin.";
-        setStatus(readyMessage);
+        if (persistedColor === "b") {
+          pendingBlackOpeningRef.current = true;
+          setStatus("Stockfish is making the opening move...");
+        } else {
+          setStatus(readyMessage);
+        }
       } catch (error) {
         console.error(error);
         setStatus("Unable to load Stockfish. Please check your connection and refresh.");
@@ -347,51 +371,90 @@ export default function ChessGame() {
   }, [currentDifficulty.skill, engineReady, waitReady]);
 
   useEffect(() => {
+    if (!engineReady) return;
+    if (!pendingBlackOpeningRef.current) return;
+    if (!workerRef.current) return;
+    pendingBlackOpeningRef.current = false;
+    setStatus("Stockfish is making the opening move...");
+    void enginePlayMove("b");
+  }, [enginePlayMove, engineReady]);
+
+  useEffect(() => {
     if (!autoAdjust) return;
     const suggested = ratingToDifficultyId(rating);
     setDifficultyId(suggested);
   }, [autoAdjust, rating]);
 
-  const resetGame = useCallback(async () => {
-    if (!workerRef.current) return;
-    setResult(null);
-    setComputerThinking(false);
-    setSelectedSquare(null);
-    setPromotionOptions(null);
-    moveHistoryRef.current = [];
-    workerRef.current.postMessage("ucinewgame");
-    await waitReady();
-    const info = await updatePositionState([]);
-    if (info.turn === "b") {
-      await enginePlayMove();
-    } else {
-      setStatus("New game! You're playing White.");
-    }
-  }, [updatePositionState, waitReady]);
-
-  const enginePlayMove = useCallback(async () => {
-    if (!workerRef.current) return;
-    setComputerThinking(true);
-    setStatus("Stockfish is thinking...");
-    const { depth } = currentDifficulty;
-    const best = await enqueueCommand(`go depth ${depth}`, "bestmove").catch(() => null);
-    setComputerThinking(false);
-    if (!best || best === "(none)") {
-      const info = await updatePositionState(moveHistoryRef.current);
-      if (info.legalMoves.length === 0) {
-        endGame(info.inCheck ? "win" : "draw");
+  const startNewGame = useCallback(
+    async (color = playerColor) => {
+      if (!workerRef.current) return;
+      setResult(null);
+      setComputerThinking(false);
+      setSelectedSquare(null);
+      setPromotionOptions(null);
+      setLastEngineMove(null);
+      pendingBlackOpeningRef.current = false;
+      moveHistoryRef.current = [];
+      workerRef.current.postMessage("ucinewgame");
+      await waitReady();
+      await updatePositionState([]);
+      if (color === "b") {
+        setStatus("Stockfish is making the opening move...");
+        await enginePlayMove("b");
+      } else {
+        setStatus("New game! You're playing White.");
       }
-      return;
-    }
-    const updatedMoves = [...moveHistoryRef.current, best];
-    setLastEngineMove(best);
-    const info = await updatePositionState(updatedMoves);
-    if (info.legalMoves.length === 0) {
-      endGame(info.inCheck ? "loss" : "draw");
-      return;
-    }
-    setStatus("Your move.");
-  }, [currentDifficulty, endGame, enqueueCommand, updatePositionState]);
+    },
+    [enginePlayMove, playerColor, updatePositionState, waitReady]
+  );
+
+  const handleColorChange = useCallback(
+    async (nextColor) => {
+      if (nextColor === playerColor) return;
+      setPlayerColor(nextColor);
+      persistProgress({
+        rating,
+        history: savedHistory,
+        autoAdjust,
+        difficultyId,
+        color: nextColor,
+      });
+      if (engineReady) {
+        await startNewGame(nextColor);
+      }
+    },
+    [autoAdjust, difficultyId, engineReady, persistProgress, playerColor, rating, savedHistory, startNewGame]
+  );
+
+  const enginePlayMove = useCallback(
+    async (colorOverride) => {
+      if (!workerRef.current) return;
+      setComputerThinking(true);
+      setStatus("Stockfish is thinking...");
+      const { depth } = currentDifficulty;
+      const best = await enqueueCommand(`go depth ${depth}`, "bestmove").catch(() => null);
+      setComputerThinking(false);
+      const activeColor = colorOverride === "b" || colorOverride === "w" ? colorOverride : playerColor;
+      if (!best || best === "(none)") {
+        const info = await updatePositionState(moveHistoryRef.current);
+        if (info.legalMoves.length === 0) {
+          endGame(info.inCheck ? "win" : "draw");
+        } else {
+          setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
+        }
+        return;
+      }
+      const updatedMoves = [...moveHistoryRef.current, best];
+      setLastEngineMove(best);
+      const info = await updatePositionState(updatedMoves);
+      if (info.legalMoves.length === 0) {
+        endGame(info.inCheck ? "loss" : "draw");
+        return;
+      }
+      setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
+    },
+    [currentDifficulty, endGame, enqueueCommand, playerColor, updatePositionState]
+  );
 
   const handlePlayerMove = useCallback(
     async (move) => {
@@ -470,12 +533,22 @@ export default function ChessGame() {
     return new Set(moves.map((move) => move.slice(2, 4)));
   }, [position.legalMoves, selectedSquare]);
 
+  const orientation = useMemo(() => boardOrientation(playerColor), [playerColor]);
+
+  const coordinateFiles = useMemo(
+    () => orientation.fileIndexes.map((fileIndex) => String.fromCharCode(97 + fileIndex)),
+    [orientation.fileIndexes]
+  );
+
+  const coordinateRanks = useMemo(
+    () => orientation.rankIndexes.map((rankIndex) => 8 - rankIndex),
+    [orientation.rankIndexes]
+  );
+
   const boardSquares = useMemo(() => {
-    const rows = [];
-    for (let rankIndex = 0; rankIndex < 8; rankIndex += 1) {
-      const row = [];
-      for (let fileIndex = 0; fileIndex < 8; fileIndex += 1) {
-        const square = String.fromCharCode(97 + fileIndex) + (8 - rankIndex);
+    return orientation.rankIndexes.map((rankIndex) =>
+      orientation.fileIndexes.map((fileIndex) => {
+        const square = getSquareName(fileIndex, rankIndex);
         const piece = position.board[rankIndex]?.[fileIndex] ?? null;
         const isLight = (fileIndex + rankIndex) % 2 === 0;
         const isSelected = selectedSquare === square;
@@ -483,7 +556,7 @@ export default function ChessGame() {
         const isLastMoveSquare =
           lastEngineMove &&
           (lastEngineMove.startsWith(square) || lastEngineMove.slice(2, 4) === square);
-        row.push({
+        return {
           key: square,
           square,
           piece,
@@ -491,79 +564,172 @@ export default function ChessGame() {
           isSelected,
           isTarget,
           isLastMoveSquare,
-        });
-      }
-      rows.push(row);
-    }
-    return rows;
-  }, [lastEngineMove, legalTargets, position.board, selectedSquare]);
+        };
+      })
+    );
+  }, [lastEngineMove, legalTargets, orientation.fileIndexes, orientation.rankIndexes, position.board, selectedSquare]);
 
   const computerLabel = useMemo(() => {
     const label = currentDifficulty.label;
     return autoAdjust ? `${label} (auto)` : label;
   }, [autoAdjust, currentDifficulty.label]);
 
+  const playerColorLabel = useMemo(() => (playerColor === "w" ? "White" : "Black"), [playerColor]);
+
+  const engineStatus = useMemo(() => {
+    if (engineSource === "local") return "Offline engine";
+    if (engineSource === "loading") return "Loading engine";
+    return "Stockfish CDN";
+  }, [engineSource]);
+
+  const engineBadgeClasses = useMemo(() => {
+    if (engineSource === "local") return "border-amber-200 bg-amber-50 text-amber-700";
+    if (engineSource === "loading") return "border-slate-200 bg-slate-100 text-slate-500";
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }, [engineSource]);
+
+  const statusTone = useMemo(() => {
+    if (result === "win") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    if (result === "loss") return "border-rose-200 bg-rose-50 text-rose-700";
+    if (result === "draw") return "border-amber-200 bg-amber-50 text-amber-700";
+    if (computerThinking) return "border-sky-200 bg-sky-50 text-sky-700";
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }, [computerThinking, result]);
+
+  const movePalette = useMemo(
+    () => ({
+      player: playerColor === "w" ? "text-blue-700" : "text-emerald-600",
+      engine: playerColor === "w" ? "text-rose-700" : "text-indigo-600",
+    }),
+    [playerColor]
+  );
+
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-4 py-12">
       {showSupportWidget && <SupportWidget />}
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 lg:flex-row">
         <div className="flex w-full flex-col gap-6 lg:w-2/3">
-          <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl backdrop-blur">
-            <div className="mb-4 flex items-center justify-between text-sm text-slate-600">
-              <span className="font-semibold uppercase tracking-[0.3em] text-slate-700">Chess vs Stockfish</span>
-              <span className="rounded-full bg-gradient-to-r from-blue-100 via-sky-100 to-emerald-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-blue-800">
-                {computerLabel}
-              </span>
-            </div>
-            <div className="aspect-square w-full max-w-xl self-center">
-              <div className="grid h-full w-full grid-cols-8 overflow-hidden rounded-2xl border border-slate-200 shadow-inner">
-                {boardSquares.map((row) =>
-                  row.map((square) => {
-                    const { key, piece, isLight, isSelected, isTarget, isLastMoveSquare } = square;
-                    const bg = isSelected
-                      ? "bg-amber-200"
-                      : isTarget
-                      ? "bg-emerald-200/70"
-                      : isLastMoveSquare
-                      ? "bg-rose-200/70"
-                      : isLight
-                      ? "bg-slate-100/80"
-                      : "bg-slate-300/60";
-                    const pieceColor = piece && piece === piece.toUpperCase() ? "text-slate-900" : "text-slate-700";
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        className={`${bg} relative flex items-center justify-center text-3xl font-medium transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2`}
-                        onClick={() => onSquareClick(key)}
-                      >
-                        <span className="sr-only">{key}</span>
-                        {isTarget && <span className="absolute h-3 w-3 rounded-full bg-emerald-500/70 z-10" />}
-                        {piece && (
-                          <span className={`pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-4xl ${pieceColor}`}>
-                            {PIECES[piece] ?? ""}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })
+          <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-2xl backdrop-blur">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Adaptive Stockfish duel</p>
+                  <h1 className="text-3xl font-semibold text-slate-900">Chess arena</h1>
+                  <p className="mt-2 max-w-xl text-sm text-slate-600">
+                    Choose your side, make confident moves, and watch the engine respond with polished feedback and saved progress.
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2 text-right">
+                  <span className="rounded-full border border-slate-200 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                    {computerLabel}
+                  </span>
+                  <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${engineBadgeClasses}`}>
+                    {engineStatus}
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Playing as {playerColorLabel}</span>
+                </div>
+              </div>
+
+              <div className={`rounded-2xl border px-4 py-3 text-sm shadow-sm ${statusTone}`}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="font-semibold">{status}</p>
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em]">
+                    <span className={`inline-flex h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
+                    <span>{computerThinking ? "Engine thinking" : "Engine ready"}</span>
+                  </div>
+                </div>
+                {engineSource === "local" && (
+                  <p className="mt-2 text-xs text-slate-600">
+                    Stockfish CDN is unreachable, so the bundled engine is powering your game.
+                  </p>
+                )}
+                {position.inCheck && !result && (
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
                 )}
               </div>
-            </div>
-            <div className="mt-4 space-y-2 text-sm text-slate-600">
-              <p className="font-semibold text-slate-700">{status}</p>
-              {engineSource === "local" && (
-                <p className="text-xs text-slate-500">
-                  Stockfish CDN is unreachable, so you are playing against the bundled engine.
-                </p>
-              )}
-              <p>
-                Rating estimate: <span className="font-semibold text-slate-800">{rating}</span>
-              </p>
-              {result && <p>Game result: {result === "draw" ? "Draw" : result === "win" ? "You win" : "Stockfish wins"}</p>}
-              {position.inCheck && !result && (
-                <p className="text-rose-600">Check! Defend your king.</p>
-              )}
+
+              <div className="relative aspect-square w-full max-w-xl self-center">
+                <div className="pointer-events-none absolute inset-x-4 bottom-3 flex justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  {coordinateFiles.map((file) => (
+                    <span key={file}>{file}</span>
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute inset-y-4 left-3 flex flex-col justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  {coordinateRanks.map((rank) => (
+                    <span key={rank}>{rank}</span>
+                  ))}
+                </div>
+                <div className="grid h-full w-full grid-cols-8 overflow-hidden rounded-2xl border border-slate-200 shadow-[0_25px_45px_-30px_rgba(15,23,42,0.55)]">
+                  {boardSquares.map((row) =>
+                    row.map((square) => {
+                      const { key, piece, isLight, isSelected, isTarget, isLastMoveSquare } = square;
+                      const baseBg = isSelected
+                        ? "bg-amber-200/80"
+                        : isLastMoveSquare
+                        ? "bg-emerald-200/70"
+                        : isLight
+                        ? "bg-slate-100/90"
+                        : "bg-slate-500/40";
+                      const ringClass = isSelected
+                        ? "ring-2 ring-amber-400"
+                        : isLastMoveSquare
+                        ? "ring-2 ring-emerald-400/70"
+                        : "";
+                      const pieceTone = piece && piece === piece.toUpperCase() ? "text-slate-900" : "text-slate-700";
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          aria-label={key}
+                          aria-pressed={isSelected}
+                          className={`${baseBg} ${ringClass} relative flex items-center justify-center text-3xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
+                          onClick={() => onSquareClick(key)}
+                        >
+                          {isTarget && (
+                            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                              <span className="h-3 w-3 rounded-full bg-emerald-500/70 shadow" />
+                            </span>
+                          )}
+                          {piece && <span className={`pointer-events-none text-4xl ${pieceTone}`}>{PIECES[piece] ?? ""}</span>}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 shadow-inner">
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Play as</span>
+                  <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-sm">
+                    {[
+                      { id: "w", label: "White" },
+                      { id: "b", label: "Black" },
+                    ].map((option) => {
+                      const isActive = option.id === playerColor;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
+                          }`}
+                          onClick={() => void handleColorChange(option.id)}
+                          disabled={!engineReady || computerThinking}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className="text-xs text-slate-500">Changing colors starts a fresh game automatically.</span>
+                </div>
+                <div className="flex flex-col items-end text-right">
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Rating estimate</span>
+                  <span className="text-3xl font-semibold text-slate-900">{rating}</span>
+                  <span className="text-xs text-slate-500">Auto difficulty {autoAdjust ? "enabled" : "manual"}</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -587,6 +753,7 @@ export default function ChessGame() {
                         history: savedHistory,
                         autoAdjust: next,
                         difficultyId: next ? ratingToDifficultyId(rating) : difficultyId,
+                        color: playerColor,
                       });
                     }}
                   />
@@ -603,6 +770,7 @@ export default function ChessGame() {
                       history: savedHistory,
                       autoAdjust,
                       difficultyId: nextId,
+                      color: playerColor,
                     });
                   }}
                   disabled={autoAdjust}
@@ -618,10 +786,13 @@ export default function ChessGame() {
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-100"
-                onClick={() => void resetGame()}
+                className={`inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition ${
+                  computerThinking ? "cursor-not-allowed opacity-60" : "hover:border-blue-300 hover:bg-blue-100"
+                }`}
+                onClick={() => void startNewGame()}
+                disabled={computerThinking}
               >
-                New game
+                Start new game
               </button>
               <button
                 type="button"
@@ -637,6 +808,7 @@ export default function ChessGame() {
                     history: [],
                     autoAdjust,
                     difficultyId: nextDifficulty,
+                    color: playerColor,
                   });
                 }}
               >
@@ -654,7 +826,7 @@ export default function ChessGame() {
               {movesForDisplay.map((move) => (
                 <li key={move.id} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2">
                   <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{move.moveNumber}</span>
-                  <span className={`text-sm ${move.isPlayerMove ? "text-blue-700" : "text-rose-700"}`}>
+                  <span className={`text-sm font-medium ${move.isPlayerMove ? movePalette.player : movePalette.engine}`}>
                     {move.label ?? move.id}
                   </span>
                 </li>
@@ -670,12 +842,18 @@ export default function ChessGame() {
                 const level = difficultyById.get(item.difficultyId);
                 const label = level ? level.label : item.difficultyId;
                 const date = new Date(item.timestamp);
+                const outcomeTone =
+                  item.result === "win"
+                    ? "text-emerald-600"
+                    : item.result === "loss"
+                    ? "text-rose-600"
+                    : "text-amber-600";
                 return (
                   <li key={`${item.timestamp}-${item.difficultyId}`} className="flex flex-col rounded-xl bg-slate-50 px-3 py-2">
                     <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                       {date.toLocaleString()}
                     </span>
-                    <span>
+                    <span className={`font-medium ${outcomeTone}`}>
                       {item.result === "draw" ? "Draw" : item.result === "win" ? "Win" : "Loss"} vs {label}
                     </span>
                   </li>

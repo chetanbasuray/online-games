@@ -13,6 +13,7 @@ import {
   bestMoveToAlgebraic,
   moveDisplayList,
   STOCKFISH_CDN_URLS,
+  boardOrientation,
 } from "../app/chess/utils.js";
 
 const BOARD_FEN = "rnbqkbnr/ppp2ppp/4p3/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq d6 0 3";
@@ -80,6 +81,22 @@ test("moveDisplayList annotates move order", () => {
   assert.equal(display[0].isPlayerMove, true);
   assert.equal(display[1].isPlayerMove, false);
   assert.equal(display[2].label, "g1 → f3");
+});
+
+test("moveDisplayList respects player color", () => {
+  const display = moveDisplayList(["e2e4", "g8f6", "d2d4"], "b");
+  assert.equal(display[0].isPlayerMove, false);
+  assert.equal(display[1].isPlayerMove, true);
+  assert.equal(display[2].isPlayerMove, false);
+});
+
+test("boardOrientation mirrors axes for black perspective", () => {
+  const white = boardOrientation("w");
+  const black = boardOrientation("b");
+  assert.deepEqual(white.fileIndexes, [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.deepEqual(white.rankIndexes, [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.deepEqual(black.fileIndexes, [7, 6, 5, 4, 3, 2, 1, 0]);
+  assert.deepEqual(black.rankIndexes, [7, 6, 5, 4, 3, 2, 1, 0]);
 });
 
 test("Stockfish CDN list stays HTTPS", () => {

@@ -148,10 +148,21 @@ export const bestMoveToAlgebraic = (move) => {
   return promo ? `${from} → ${to} (${promo.toUpperCase()})` : `${from} → ${to}`;
 };
 
-export const moveDisplayList = (moves) =>
+export const boardOrientation = (perspective = "w") => {
+  const normalized = perspective === "b" ? "b" : "w";
+  const base = [0, 1, 2, 3, 4, 5, 6, 7];
+  const ordered = normalized === "w" ? base : [...base].reverse();
+  return {
+    fileIndexes: [...ordered],
+    rankIndexes: [...ordered],
+  };
+};
+
+export const moveDisplayList = (moves, playerColor = "w") =>
   sanitizeMovesList(moves).map((move, index) => {
     const moveNumber = Math.floor(index / 2) + 1;
-    const isPlayerMove = index % 2 === 0;
+    const playerStarts = playerColor !== "b";
+    const isPlayerMove = playerStarts ? index % 2 === 0 : index % 2 === 1;
     const label = bestMoveToAlgebraic(move);
     return {
       id: `${index}-${move}`,

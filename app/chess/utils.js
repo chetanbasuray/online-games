@@ -64,6 +64,13 @@ export const DEFAULT_RATING = 1200;
 export const LOCAL_STORAGE_KEY = "online-games-chess-progress";
 export const DEFAULT_DIFFICULTY_ID = DIFFICULTIES[1]?.id ?? DIFFICULTIES[0].id;
 
+export const STOCKFISH_CDN_URLS = [
+  "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/dist/stockfish.js",
+  "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/src/stockfish.js",
+  "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/stockfish.js",
+  "https://unpkg.com/stockfish@16.1.0/dist/stockfish.js",
+];
+
 export const fenToBoard = (fen) => {
   if (typeof fen !== "string") {
     throw new TypeError("FEN must be a string");
@@ -130,4 +137,27 @@ export const sanitizeMovesList = (moves) => {
   if (!Array.isArray(moves)) return [];
   return moves.filter((move) => typeof move === "string" && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move));
 };
+
+export const bestMoveToAlgebraic = (move) => {
+  if (!move || move === "(none)" || !/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move)) {
+    return null;
+  }
+  const from = move.slice(0, 2);
+  const to = move.slice(2, 4);
+  const promo = move.slice(4);
+  return promo ? `${from} → ${to} (${promo.toUpperCase()})` : `${from} → ${to}`;
+};
+
+export const moveDisplayList = (moves) =>
+  sanitizeMovesList(moves).map((move, index) => {
+    const moveNumber = Math.floor(index / 2) + 1;
+    const isPlayerMove = index % 2 === 0;
+    const label = bestMoveToAlgebraic(move);
+    return {
+      id: `${index}-${move}`,
+      moveNumber,
+      label,
+      isPlayerMove,
+    };
+  });
 

@@ -10,6 +10,9 @@ import {
   sanitizeMovesList,
   getSquareName,
   parseSquare,
+  bestMoveToAlgebraic,
+  moveDisplayList,
+  STOCKFISH_CDN_URLS,
 } from "../app/chess/utils.js";
 
 const BOARD_FEN = "rnbqkbnr/ppp2ppp/4p3/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq d6 0 3";
@@ -59,4 +62,31 @@ test("square helpers round-trip", () => {
 
 test("default difficulty id is part of catalog", () => {
   assert.ok(DIFFICULTIES.some((level) => level.id === DEFAULT_DIFFICULTY_ID));
+});
+
+test("bestMoveToAlgebraic formats UCI moves", () => {
+  assert.equal(bestMoveToAlgebraic("e2e4"), "e2 → e4");
+  assert.equal(bestMoveToAlgebraic("a7a8q"), "a7 → a8 (Q)");
+  assert.equal(bestMoveToAlgebraic("(none)"), null);
+  assert.equal(bestMoveToAlgebraic("bad"), null);
+});
+
+test("moveDisplayList annotates move order", () => {
+  const display = moveDisplayList(["e2e4", "e7e5", "g1f3"]);
+  assert.equal(display.length, 3);
+  assert.equal(display[0].moveNumber, 1);
+  assert.equal(display[1].moveNumber, 1);
+  assert.equal(display[2].moveNumber, 2);
+  assert.equal(display[0].isPlayerMove, true);
+  assert.equal(display[1].isPlayerMove, false);
+  assert.equal(display[2].label, "g1 → f3");
+});
+
+test("Stockfish CDN list stays HTTPS", () => {
+  assert.ok(Array.isArray(STOCKFISH_CDN_URLS));
+  assert.ok(STOCKFISH_CDN_URLS.length >= 2);
+  STOCKFISH_CDN_URLS.forEach((url) => {
+    assert.equal(typeof url, "string");
+    assert.ok(url.startsWith("https://"));
+  });
 });

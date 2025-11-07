@@ -12,35 +12,48 @@ import {
   DEFAULT_RATING,
   DEFAULT_DIFFICULTY_ID,
   LOCAL_STORAGE_KEY,
+  STOCKFISH_CDN_URLS,
   adjustRating,
   difficultyById,
   fenToBoard,
+  moveDisplayList,
   ratingToDifficultyId,
   sanitizeMovesList,
 } from "./utils";
 
 const PLAYER_COLOR = "w";
-const STOCKFISH_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/stockfish.js";
-
 const showSupportWidget = isGamePlayable("/chess");
 
 const loadStockfishWorker = async () => {
-  try {
-    const response = await fetch(STOCKFISH_SCRIPT_URL);
-    if (!response.ok) {
-      throw new Error(`Unable to fetch Stockfish script: ${response.status}`);
+  const attempts = [];
+  for (const scriptUrl of STOCKFISH_CDN_URLS) {
+    try {
+      const response = await fetch(scriptUrl, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const source = await response.text();
+      const blob = new Blob([source], { type: "application/javascript" });
+      const url = URL.createObjectURL(blob);
+      const worker = new Worker(url);
+      return { worker, url, source: "cdn", scriptUrl };
+    } catch (error) {
+      console.warn(`Failed to load Stockfish from ${scriptUrl}`, error);
+      attempts.push({ url: scriptUrl, message: error instanceof Error ? error.message : String(error) });
     }
-    const source = await response.text();
-    const blob = new Blob([source], { type: "application/javascript" });
-    const url = URL.createObjectURL(blob);
-    const worker = new Worker(url);
-    return { worker, url };
-  } catch (error) {
-    console.warn("Falling back to bundled engine", error);
+  }
+
+  console.warn("Falling back to bundled engine after CDN attempts", attempts);
+
+  try {
     const worker = new Worker(new URL("./stockfish.worker.js", import.meta.url), {
       type: "module",
     });
-    return { worker, url: null };
+    return { worker, url: null, source: "local" };
+  } catch (error) {
+    const failure = new Error("Unable to initialise any chess engine");
+    failure.cause = { attempts, error };
+    throw failure;
   }
 };
 
@@ -49,29 +62,6 @@ const historyEntry = (result, difficultyId) => ({
   difficultyId,
   timestamp: new Date().toISOString(),
 });
-
-const bestMoveToAlgebraic = (move) => {
-  if (!move || move === "(none)" || !/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move)) {
-    return null;
-  }
-  const from = move.slice(0, 2);
-  const to = move.slice(2, 4);
-  const promo = move.slice(4);
-  return promo ? `${from} → ${to} (${promo.toUpperCase()})` : `${from} → ${to}`;
-};
-
-const moveDisplayList = (moves) =>
-  moves.map((move, index) => {
-    const moveNumber = Math.floor(index / 2) + 1;
-    const isPlayerMove = index % 2 === 0;
-    const label = bestMoveToAlgebraic(move);
-    return {
-      id: `${index}-${move}`,
-      moveNumber,
-      label,
-      isPlayerMove,
-    };
-  });
 
 export default function ChessGame() {
   const workerRef = useRef(null);
@@ -86,7 +76,7 @@ export default function ChessGame() {
     turn: "w",
   });
   const [engineReady, setEngineReady] = useState(false);
-  const [status, setStatus] = useState("Loading Stockfish...");
+  const [status, setStatus] = useState("Preparing chess engine...");
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [promotionOptions, setPromotionOptions] = useState(null);
   const [result, setResult] = useState(null);
@@ -96,6 +86,7 @@ export default function ChessGame() {
   const [savedHistory, setSavedHistory] = useState([]);
   const [computerThinking, setComputerThinking] = useState(false);
   const [lastEngineMove, setLastEngineMove] = useState(null);
+  const [engineSource, setEngineSource] = useState("loading");
 
   const isPlayerTurn = position.turn === PLAYER_COLOR && !computerThinking && !result;
 
@@ -290,14 +281,20 @@ export default function ChessGame() {
           }
         }
 
-        const { worker, url } = await loadStockfishWorker();
+        const { worker, url, source } = await loadStockfishWorker();
         if (!active) {
           worker.terminate();
-          URL.revokeObjectURL(url);
+          if (url) {
+            URL.revokeObjectURL(url);
+          }
           return;
         }
         workerRef.current = worker;
         workerUrlRef.current = url;
+        setEngineSource(source ?? "cdn");
+        if (source === "local") {
+          setStatus("Loading offline engine...");
+        }
         worker.addEventListener("message", handleWorkerMessage);
 
         const initialDifficulty = difficultyById.get(persistedDifficultyId) ?? DIFFICULTIES[0];
@@ -310,7 +307,11 @@ export default function ChessGame() {
         await waitReady();
         await updatePositionState([]);
         setEngineReady(true);
-        setStatus("Your move! Select a piece to begin.");
+        const readyMessage =
+          source === "local"
+            ? "Your move! Offline engine is ready."
+            : "Your move! Select a piece to begin.";
+        setStatus(readyMessage);
       } catch (error) {
         console.error(error);
         setStatus("Unable to load Stockfish. Please check your connection and refresh.");
@@ -551,6 +552,11 @@ export default function ChessGame() {
             </div>
             <div className="mt-4 space-y-2 text-sm text-slate-600">
               <p className="font-semibold text-slate-700">{status}</p>
+              {engineSource === "local" && (
+                <p className="text-xs text-slate-500">
+                  Stockfish CDN is unreachable, so you are playing against the bundled engine.
+                </p>
+              )}
               <p>
                 Rating estimate: <span className="font-semibold text-slate-800">{rating}</span>
               </p>

@@ -1,4 +1,4 @@
-import { PUZZLES } from "../lexitwist/puzzles";
+import { PUZZLES } from "../lexitwist/puzzles.js";
 
 const THREE_LETTER_BASE = [
   "ACE", "ACT", "ADD", "ADO", "AGE", "AGO", "AID", "AIL", "AIM", "AIR", "ALE", "ALL", "ALT", "AMP",

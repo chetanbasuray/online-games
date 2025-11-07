@@ -14,6 +14,7 @@ import {
   moveDisplayList,
   STOCKFISH_CDN_URLS,
   boardOrientation,
+  capturedPieces,
 } from "../app/chess/utils.js";
 
 const BOARD_FEN = "rnbqkbnr/ppp2ppp/4p3/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq d6 0 3";
@@ -97,6 +98,13 @@ test("boardOrientation mirrors axes for black perspective", () => {
   assert.deepEqual(white.rankIndexes, [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.deepEqual(black.fileIndexes, [7, 6, 5, 4, 3, 2, 1, 0]);
   assert.deepEqual(black.rankIndexes, [7, 6, 5, 4, 3, 2, 1, 0]);
+});
+
+test("capturedPieces tracks missing material", () => {
+  const board = fenToBoard("rnbqk1nr/1ppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  const captures = capturedPieces(board);
+  assert.deepEqual(captures.white, ["b", "p"]);
+  assert.deepEqual(captures.black, []);
 });
 
 test("Stockfish CDN list stays HTTPS", () => {

@@ -64,6 +64,28 @@ export const DEFAULT_RATING = 1200;
 export const LOCAL_STORAGE_KEY = "online-games-chess-progress";
 export const DEFAULT_DIFFICULTY_ID = DIFFICULTIES[1]?.id ?? DIFFICULTIES[0].id;
 
+const STARTING_COUNTS = {
+  white: { P: 8, N: 2, B: 2, R: 2, Q: 1, K: 1 },
+  black: { p: 8, n: 2, b: 2, r: 2, q: 1, k: 1 },
+};
+
+const sortCapturedPieces = (pieces, priority) => {
+  const buckets = new Map(priority.map((piece, index) => [piece, index]));
+  const remainder = [];
+  const grouped = Array.from({ length: priority.length }, () => []);
+
+  for (const piece of pieces) {
+    if (buckets.has(piece)) {
+      const index = buckets.get(piece);
+      grouped[index].push(piece);
+    } else {
+      remainder.push(piece);
+    }
+  }
+
+  return grouped.flat().concat(remainder);
+};
+
 export const STOCKFISH_CDN_URLS = [
   "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/dist/stockfish.js",
   "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/src/stockfish.js",
@@ -171,4 +193,50 @@ export const moveDisplayList = (moves, playerColor = "w") =>
       isPlayerMove,
     };
   });
+
+export const capturedPieces = (board) => {
+  if (!Array.isArray(board)) {
+    return { white: [], black: [] };
+  }
+
+  const currentCounts = {
+    white: { P: 0, N: 0, B: 0, R: 0, Q: 0, K: 0 },
+    black: { p: 0, n: 0, b: 0, r: 0, q: 0, k: 0 },
+  };
+
+  for (const rank of board) {
+    if (!Array.isArray(rank)) continue;
+    for (const piece of rank) {
+      if (!piece) continue;
+      if (typeof piece !== "string") continue;
+      if (piece === piece.toUpperCase()) {
+        if (piece in currentCounts.white) {
+          currentCounts.white[piece] += 1;
+        }
+      } else if (piece in currentCounts.black) {
+        currentCounts.black[piece] += 1;
+      }
+    }
+  }
+
+  const missingPieces = (startKey, order) => {
+    const captured = [];
+    const starting = STARTING_COUNTS[startKey];
+    const current = currentCounts[startKey];
+    for (const piece of Object.keys(starting)) {
+      const expected = starting[piece];
+      const present = current[piece] ?? 0;
+      const missing = Math.max(0, expected - present);
+      for (let index = 0; index < missing; index += 1) {
+        captured.push(piece);
+      }
+    }
+    return sortCapturedPieces(captured, order);
+  };
+
+  return {
+    white: missingPieces("black", ["q", "r", "b", "n", "p", "k"]),
+    black: missingPieces("white", ["Q", "R", "B", "N", "P", "K"]),
+  };
+};
 

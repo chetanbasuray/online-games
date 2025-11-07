@@ -21,6 +21,7 @@ import {
   getSquareName,
   ratingToDifficultyId,
   sanitizeMovesList,
+  capturedPieces,
 } from "./utils";
 
 const showSupportWidget = isGamePlayable("/chess");
@@ -398,11 +399,12 @@ export default function ChessGame() {
       workerRef.current.postMessage("ucinewgame");
       await waitReady();
       await updatePositionState([]);
+      const label = color === "b" ? "Black" : "White";
       if (color === "b") {
         setStatus("Stockfish is making the opening move...");
         await enginePlayMove("b");
       } else {
-        setStatus("New game! You're playing White.");
+        setStatus(`New game! You're playing ${label}.`);
       }
     },
     [enginePlayMove, playerColor, updatePositionState, waitReady]
@@ -425,6 +427,24 @@ export default function ChessGame() {
     },
     [autoAdjust, difficultyId, engineReady, persistProgress, playerColor, rating, savedHistory, startNewGame]
   );
+
+  const handleAutoAdjustToggle = useCallback(() => {
+    setAutoAdjust((previous) => {
+      const next = !previous;
+      const suggested = ratingToDifficultyId(rating);
+      if (next) {
+        setDifficultyId(suggested);
+      }
+      persistProgress({
+        rating,
+        history: savedHistory,
+        autoAdjust: next,
+        difficultyId: next ? suggested : difficultyId,
+        color: playerColor,
+      });
+      return next;
+    });
+  }, [difficultyId, persistProgress, playerColor, rating, savedHistory]);
 
   const enginePlayMove = useCallback(
     async (colorOverride) => {
@@ -604,40 +624,54 @@ export default function ChessGame() {
     [playerColor]
   );
 
+  const captures = useMemo(() => capturedPieces(position.board), [position.board]);
+  const playerCaptures = useMemo(
+    () => (playerColor === "w" ? captures.white : captures.black),
+    [captures, playerColor]
+  );
+  const engineCaptures = useMemo(
+    () => (playerColor === "w" ? captures.black : captures.white),
+    [captures, playerColor]
+  );
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-4 py-12">
       {showSupportWidget && <SupportWidget />}
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 lg:flex-row">
-        <div className="flex w-full flex-col gap-6 lg:w-2/3">
-          <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-2xl backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <header className="flex flex-col gap-2 text-center sm:text-left">
+          <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Stockfish training ground</span>
+          <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">Chess arena</h1>
+          <p className="max-w-3xl self-center text-sm text-slate-600 sm:self-start sm:text-base">
+            Challenge the engine with a refreshed control hub, flexible color switching, and quick insight into your captured material.
+          </p>
+        </header>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_24px_55px_rgba(15,23,42,0.12)] backdrop-blur">
             <div className="flex flex-col gap-6">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Adaptive Stockfish duel</p>
-                  <h1 className="text-3xl font-semibold text-slate-900">Chess arena</h1>
-                  <p className="mt-2 max-w-xl text-sm text-slate-600">
-                    Choose your side, make confident moves, and watch the engine respond with polished feedback and saved progress.
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Interactive board</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Play against Stockfish</h2>
+                  <p className="mt-1 max-w-xl text-sm text-slate-600">
+                    Stay focused on the action while streamlined controls keep side selection, restarts, and captured pieces close at hand.
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-2 text-right">
-                  <span className="rounded-full border border-slate-200 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
-                    {computerLabel}
+                <div className="flex flex-col items-start gap-2 text-sm text-slate-600 sm:items-end">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500 shadow-sm">
+                    <span className={`h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
+                    {computerThinking ? "Engine thinking" : "Engine ready"}
                   </span>
-                  <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${engineBadgeClasses}`}>
+                  <span className={`inline-flex rounded-full border px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.25em] ${engineBadgeClasses}`}>
                     {engineStatus}
+                  </span>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                    {computerLabel}
                   </span>
                   <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Playing as {playerColorLabel}</span>
                 </div>
               </div>
-
-              <div className={`rounded-2xl border px-4 py-3 text-sm shadow-sm ${statusTone}`}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="font-semibold">{status}</p>
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em]">
-                    <span className={`inline-flex h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
-                    <span>{computerThinking ? "Engine thinking" : "Engine ready"}</span>
-                  </div>
-                </div>
+              <div className={`rounded-2xl border px-4 py-3 text-sm shadow-inner ${statusTone}`}>
+                <p className="font-semibold">{status}</p>
                 {engineSource === "local" && (
                   <p className="mt-2 text-xs text-slate-600">
                     Stockfish CDN is unreachable, so the bundled engine is powering your game.
@@ -647,228 +681,288 @@ export default function ChessGame() {
                   <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
                 )}
               </div>
-
-              <div className="relative aspect-square w-full max-w-xl self-center">
-                <div className="pointer-events-none absolute inset-x-4 bottom-3 flex justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  {coordinateFiles.map((file) => (
-                    <span key={file}>{file}</span>
-                  ))}
-                </div>
-                <div className="pointer-events-none absolute inset-y-4 left-3 flex flex-col justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  {coordinateRanks.map((rank) => (
-                    <span key={rank}>{rank}</span>
-                  ))}
-                </div>
-                <div className="grid h-full w-full grid-cols-8 overflow-hidden rounded-2xl border border-slate-200 shadow-[0_25px_45px_-30px_rgba(15,23,42,0.55)]">
-                  {boardSquares.map((row) =>
-                    row.map((square) => {
-                      const { key, piece, isLight, isSelected, isTarget, isLastMoveSquare } = square;
-                      const baseBg = isSelected
-                        ? "bg-amber-200/80"
-                        : isLastMoveSquare
-                        ? "bg-emerald-200/70"
-                        : isLight
-                        ? "bg-slate-100/90"
-                        : "bg-slate-500/40";
-                      const ringClass = isSelected
-                        ? "ring-2 ring-amber-400"
-                        : isLastMoveSquare
-                        ? "ring-2 ring-emerald-400/70"
-                        : "";
-                      const pieceTone = piece && piece === piece.toUpperCase() ? "text-slate-900" : "text-slate-700";
-                      return (
-                        <button
-                          key={key}
-                          type="button"
-                          aria-label={key}
-                          aria-pressed={isSelected}
-                          className={`${baseBg} ${ringClass} relative flex items-center justify-center text-3xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
-                          onClick={() => onSquareClick(key)}
-                        >
-                          {isTarget && (
-                            <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                              <span className="h-3 w-3 rounded-full bg-emerald-500/70 shadow" />
-                            </span>
-                          )}
-                          {piece && <span className={`pointer-events-none text-4xl ${pieceTone}`}>{PIECES[piece] ?? ""}</span>}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 shadow-inner">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Play as</span>
-                  <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-sm">
-                    {[
-                      { id: "w", label: "White" },
-                      { id: "b", label: "Black" },
-                    ].map((option) => {
-                      const isActive = option.id === playerColor;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                            isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
-                          }`}
-                          onClick={() => void handleColorChange(option.id)}
-                          disabled={!engineReady || computerThinking}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,230px)]">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative aspect-square w-full max-w-xl">
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 flex justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                      {coordinateFiles.map((file) => (
+                        <span key={file}>{file}</span>
+                      ))}
+                    </div>
+                    <div className="pointer-events-none absolute inset-y-4 left-3 flex flex-col justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                      {coordinateRanks.map((rank) => (
+                        <span key={rank}>{rank}</span>
+                      ))}
+                    </div>
+                    <div className="grid h-full w-full grid-cols-8 overflow-hidden rounded-2xl border border-slate-200 shadow-[0_25px_45px_-30px_rgba(15,23,42,0.55)]">
+                      {boardSquares.map((row) =>
+                        row.map((square) => {
+                          const { key, piece, isLight, isSelected, isTarget, isLastMoveSquare } = square;
+                          const baseBg = isSelected
+                            ? "bg-amber-200/80"
+                            : isLastMoveSquare
+                            ? "bg-emerald-200/70"
+                            : isLight
+                            ? "bg-slate-100/90"
+                            : "bg-slate-500/40";
+                          const ringClass = isSelected
+                            ? "ring-2 ring-amber-400"
+                            : isLastMoveSquare
+                            ? "ring-2 ring-emerald-400/70"
+                            : "";
+                          const pieceTone = piece && piece === piece.toUpperCase() ? "text-slate-900" : "text-slate-700";
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              aria-label={key}
+                              aria-pressed={isSelected}
+                              className={`${baseBg} ${ringClass} relative flex items-center justify-center text-3xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
+                              onClick={() => onSquareClick(key)}
+                            >
+                              {isTarget && (
+                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                  <span className="h-3 w-3 rounded-full bg-emerald-500/70 shadow" />
+                                </span>
+                              )}
+                              {piece && <span className={`pointer-events-none text-4xl ${pieceTone}`}>{PIECES[piece] ?? ""}</span>}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                  <span className="text-xs text-slate-500">Changing colors starts a fresh game automatically.</span>
                 </div>
-                <div className="flex flex-col items-end text-right">
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Rating estimate</span>
-                  <span className="text-3xl font-semibold text-slate-900">{rating}</span>
-                  <span className="text-xs text-slate-500">Auto difficulty {autoAdjust ? "enabled" : "manual"}</span>
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Choose side</p>
+                        <p className="text-sm font-semibold text-slate-700">{playerColorLabel}</p>
+                      </div>
+                      <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-inner">
+                        {[
+                          { id: "w", label: "White", icon: PIECES.P },
+                          { id: "b", label: "Black", icon: PIECES.p },
+                        ].map((option) => {
+                          const isActive = option.id === playerColor;
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              aria-pressed={isActive}
+                              className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
+                                isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
+                              }`}
+                              onClick={() => void handleColorChange(option.id)}
+                              disabled={!engineReady || computerThinking}
+                            >
+                              <span className="text-lg">{option.icon}</span>
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      Switching colors flips the board, saves your preference, and starts a fresh game automatically.
+                    </p>
+                    <button
+                      type="button"
+                      className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition ${
+                        computerThinking ? "cursor-not-allowed opacity-60" : "hover:border-blue-300 hover:bg-blue-100"
+                      }`}
+                      onClick={() => void startNewGame()}
+                      disabled={computerThinking}
+                    >
+                      Start new game
+                    </button>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Captures</p>
+                    <div className="mt-3 space-y-3 text-sm text-slate-600">
+                      <div>
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                          You ({playerColorLabel})
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-2xl text-slate-700">
+                          {playerCaptures.length === 0 ? (
+                            <span className="text-xs text-slate-400">None captured yet</span>
+                          ) : (
+                            playerCaptures.map((piece, index) => (
+                              <span
+                                key={`player-capture-${piece}-${index}`}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm"
+                              >
+                                {PIECES[piece] ?? piece}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Stockfish</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-2xl text-slate-700">
+                          {engineCaptures.length === 0 ? (
+                            <span className="text-xs text-slate-400">No material lost</span>
+                          ) : (
+                            engineCaptures.map((piece, index) => (
+                              <span
+                                key={`engine-capture-${piece}-${index}`}
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm"
+                              >
+                                {PIECES[piece] ?? piece}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Difficulty insight</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
+                    <p className="mt-2 text-xs text-slate-500">{currentDifficulty.description}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl backdrop-blur">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Difficulty</p>
-                <p className="text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
-                <p className="text-xs text-slate-500">{currentDifficulty.description}</p>
+          </section>
+          <aside className="flex flex-col gap-6">
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_24px_55px_rgba(15,23,42,0.12)] backdrop-blur">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Progress tracker</h2>
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Rating estimate</p>
+                  <p className="text-4xl font-semibold text-slate-900">{rating}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current level</p>
+                  <p className="text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
+                </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
-                  <input
-                    type="checkbox"
-                    checked={autoAdjust}
+              <div className="mt-4 space-y-4">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoAdjust}
+                  className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                    autoAdjust ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-100 text-slate-600"
+                  }`}
+                  onClick={handleAutoAdjustToggle}
+                >
+                  <span>Auto adjust difficulty</span>
+                  <span className={`inline-flex h-5 w-10 items-center rounded-full transition ${autoAdjust ? "bg-blue-500" : "bg-slate-400"}`}>
+                    <span
+                      className={`h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ${
+                        autoAdjust ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </span>
+                </button>
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Manual difficulty</label>
+                  <select
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    value={difficultyId}
                     onChange={(event) => {
-                      const next = event.target.checked;
-                      setAutoAdjust(next);
+                      const nextId = event.target.value;
+                      setDifficultyId(nextId);
                       persistProgress({
                         rating,
                         history: savedHistory,
-                        autoAdjust: next,
-                        difficultyId: next ? ratingToDifficultyId(rating) : difficultyId,
+                        autoAdjust,
+                        difficultyId: nextId,
                         color: playerColor,
                       });
                     }}
-                  />
-                  Auto adjust
-                </label>
-                <select
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none"
-                  value={difficultyId}
-                  onChange={(event) => {
-                    const nextId = event.target.value;
-                    setDifficultyId(nextId);
+                    disabled={autoAdjust}
+                  >
+                    {DIFFICULTIES.map((level) => (
+                      <option key={level.id} value={level.id}>
+                        {level.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {autoAdjust ? "Auto mode picks a level after each result." : "Choose a level to stick with manual control."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-100"
+                  onClick={() => {
+                    const nextRating = DEFAULT_RATING;
+                    setRating(nextRating);
+                    const nextDifficulty = ratingToDifficultyId(nextRating);
+                    setDifficultyId(nextDifficulty);
+                    setSavedHistory([]);
                     persistProgress({
-                      rating,
-                      history: savedHistory,
+                      rating: nextRating,
+                      history: [],
                       autoAdjust,
-                      difficultyId: nextId,
+                      difficultyId: nextDifficulty,
                       color: playerColor,
                     });
                   }}
-                  disabled={autoAdjust}
                 >
-                  {DIFFICULTIES.map((level) => (
-                    <option key={level.id} value={level.id}>
-                      {level.label}
-                    </option>
-                  ))}
-                </select>
+                  Reset rating
+                </button>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-              <button
-                type="button"
-                className={`inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition ${
-                  computerThinking ? "cursor-not-allowed opacity-60" : "hover:border-blue-300 hover:bg-blue-100"
-                }`}
-                onClick={() => void startNewGame()}
-                disabled={computerThinking}
-              >
-                Start new game
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-100"
-                onClick={() => {
-                  const nextRating = DEFAULT_RATING;
-                  setRating(nextRating);
-                  const nextDifficulty = ratingToDifficultyId(nextRating);
-                  setDifficultyId(nextDifficulty);
-                  setSavedHistory([]);
-                  persistProgress({
-                    rating: nextRating,
-                    history: [],
-                    autoAdjust,
-                    difficultyId: nextDifficulty,
-                    color: playerColor,
-                  });
-                }}
-              >
-                Reset rating
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex w-full flex-col gap-6 lg:w-1/3">
-          <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl backdrop-blur">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Move list</h2>
-            <ol className="space-y-2 text-sm text-slate-600">
-              {movesForDisplay.length === 0 && <li>No moves yet. Make your first move!</li>}
-              {movesForDisplay.map((move) => (
-                <li key={move.id} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2">
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{move.moveNumber}</span>
-                  <span className={`text-sm font-medium ${move.isPlayerMove ? movePalette.player : movePalette.engine}`}>
-                    {move.label ?? move.id}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl backdrop-blur">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Recent results</h2>
-            <ul className="space-y-2 text-sm text-slate-600">
-              {savedHistory.length === 0 && <li>Play games to build your track record.</li>}
-              {savedHistory.map((item) => {
-                const level = difficultyById.get(item.difficultyId);
-                const label = level ? level.label : item.difficultyId;
-                const date = new Date(item.timestamp);
-                const outcomeTone =
-                  item.result === "win"
-                    ? "text-emerald-600"
-                    : item.result === "loss"
-                    ? "text-rose-600"
-                    : "text-amber-600";
-                return (
-                  <li key={`${item.timestamp}-${item.difficultyId}`} className="flex flex-col rounded-xl bg-slate-50 px-3 py-2">
-                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                      {date.toLocaleString()}
-                    </span>
-                    <span className={`font-medium ${outcomeTone}`}>
-                      {item.result === "draw" ? "Draw" : item.result === "win" ? "Win" : "Loss"} vs {label}
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Move list</h2>
+                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-400">Live</span>
+              </div>
+              <ol className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+                {movesForDisplay.length === 0 && <li className="text-xs text-slate-400">No moves yet. Make your first move!</li>}
+                {movesForDisplay.map((move) => (
+                  <li
+                    key={move.id}
+                    className="grid grid-cols-[auto,1fr] items-center gap-3 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">#{move.moveNumber}</span>
+                    <span className={`text-sm font-medium ${move.isPlayerMove ? movePalette.player : movePalette.engine}`}>
+                      {move.label ?? move.id}
                     </span>
                   </li>
-                );
-              })}
-            </ul>
-          </div>
-
-          <GameFooter>
-            Challenge Stockfish at tuned levels ranging from training wheels to tournament sharp. Your progress is saved locally so
-            you can return to the difficulty that fits your groove.
-          </GameFooter>
+                ))}
+              </ol>
+            </div>
+            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Recent results</h2>
+              <ul className="mt-4 max-h-64 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+                {savedHistory.length === 0 && <li className="text-xs text-slate-400">Play games to build your track record.</li>}
+                {savedHistory.map((item) => {
+                  const level = difficultyById.get(item.difficultyId);
+                  const label = level ? level.label : item.difficultyId;
+                  const date = new Date(item.timestamp);
+                  const outcomeTone =
+                    item.result === "win" ? "text-emerald-600" : item.result === "loss" ? "text-rose-600" : "text-amber-600";
+                  return (
+                    <li
+                      key={`${item.timestamp}-${item.difficultyId}`}
+                      className="flex flex-col rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
+                    >
+                      <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                        {date.toLocaleString()}
+                      </span>
+                      <span className={`font-medium ${outcomeTone}`}>
+                        {item.result === "draw" ? "Draw" : item.result === "win" ? "Win" : "Loss"} vs {label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <GameFooter>
+              Challenge Stockfish at tuned levels ranging from training wheels to tournament sharp. Your progress is saved locally so
+              you can return to the difficulty that fits your groove.
+            </GameFooter>
+          </aside>
         </div>
       </div>
-
       {promotionOptions && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">
           <div className="w-full max-w-sm rounded-3xl border border-slate-200/80 bg-white p-6 text-center shadow-xl">

@@ -25,15 +25,23 @@ const STOCKFISH_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/stockfish@16.1.0/stoc
 const showSupportWidget = isGamePlayable("/chess");
 
 const loadStockfishWorker = async () => {
-  const response = await fetch(STOCKFISH_SCRIPT_URL);
-  if (!response.ok) {
-    throw new Error("Unable to fetch Stockfish script");
+  try {
+    const response = await fetch(STOCKFISH_SCRIPT_URL);
+    if (!response.ok) {
+      throw new Error(`Unable to fetch Stockfish script: ${response.status}`);
+    }
+    const source = await response.text();
+    const blob = new Blob([source], { type: "application/javascript" });
+    const url = URL.createObjectURL(blob);
+    const worker = new Worker(url);
+    return { worker, url };
+  } catch (error) {
+    console.warn("Falling back to bundled engine", error);
+    const worker = new Worker(new URL("./stockfish.worker.js", import.meta.url), {
+      type: "module",
+    });
+    return { worker, url: null };
   }
-  const source = await response.text();
-  const blob = new Blob([source], { type: "application/javascript" });
-  const url = URL.createObjectURL(blob);
-  const worker = new Worker(url);
-  return { worker, url };
 };
 
 const historyEntry = (result, difficultyId) => ({

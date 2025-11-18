@@ -361,6 +361,36 @@ export default function ChessGame() {
     };
   }, [handleWorkerMessage, updatePositionState, waitReady]);
 
+  const enginePlayMove = useCallback(
+    async (colorOverride) => {
+      if (!workerRef.current) return;
+      setComputerThinking(true);
+      setStatus("Stockfish is thinking...");
+      const { depth } = currentDifficulty;
+      const best = await enqueueCommand(`go depth ${depth}`, "bestmove").catch(() => null);
+      setComputerThinking(false);
+      const activeColor = colorOverride === "b" || colorOverride === "w" ? colorOverride : playerColor;
+      if (!best || best === "(none)") {
+        const info = await updatePositionState(moveHistoryRef.current);
+        if (info.legalMoves.length === 0) {
+          endGame(info.inCheck ? "win" : "draw");
+        } else {
+          setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
+        }
+        return;
+      }
+      const updatedMoves = [...moveHistoryRef.current, best];
+      setLastEngineMove(best);
+      const info = await updatePositionState(updatedMoves);
+      if (info.legalMoves.length === 0) {
+        endGame(info.inCheck ? "loss" : "draw");
+        return;
+      }
+      setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
+    },
+    [currentDifficulty, endGame, enqueueCommand, playerColor, updatePositionState]
+  );
+
   useEffect(() => {
     if (!engineReady) return;
     const worker = workerRef.current;
@@ -445,36 +475,6 @@ export default function ChessGame() {
       return next;
     });
   }, [difficultyId, persistProgress, playerColor, rating, savedHistory]);
-
-  const enginePlayMove = useCallback(
-    async (colorOverride) => {
-      if (!workerRef.current) return;
-      setComputerThinking(true);
-      setStatus("Stockfish is thinking...");
-      const { depth } = currentDifficulty;
-      const best = await enqueueCommand(`go depth ${depth}`, "bestmove").catch(() => null);
-      setComputerThinking(false);
-      const activeColor = colorOverride === "b" || colorOverride === "w" ? colorOverride : playerColor;
-      if (!best || best === "(none)") {
-        const info = await updatePositionState(moveHistoryRef.current);
-        if (info.legalMoves.length === 0) {
-          endGame(info.inCheck ? "win" : "draw");
-        } else {
-          setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
-        }
-        return;
-      }
-      const updatedMoves = [...moveHistoryRef.current, best];
-      setLastEngineMove(best);
-      const info = await updatePositionState(updatedMoves);
-      if (info.legalMoves.length === 0) {
-        endGame(info.inCheck ? "loss" : "draw");
-        return;
-      }
-      setStatus(activeColor === "w" ? "Your move as White." : "Your move as Black.");
-    },
-    [currentDifficulty, endGame, enqueueCommand, playerColor, updatePositionState]
-  );
 
   const handlePlayerMove = useCallback(
     async (move) => {

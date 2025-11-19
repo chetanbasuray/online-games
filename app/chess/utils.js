@@ -1,5 +1,14 @@
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
+const MATERIAL_VALUES = {
+  p: 1,
+  n: 3,
+  b: 3,
+  r: 5,
+  q: 9,
+  k: 0,
+};
+
 export const INITIAL_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export const DIFFICULTIES = [
@@ -237,6 +246,83 @@ export const capturedPieces = (board) => {
   return {
     white: missingPieces("black", ["q", "r", "b", "n", "p", "k"]),
     black: missingPieces("white", ["Q", "R", "B", "N", "P", "K"]),
+  };
+};
+
+const normalizeHistory = (history) => {
+  if (!Array.isArray(history)) return [];
+  return history.filter((entry) => entry && typeof entry.result === "string");
+};
+
+const materialValueForPiece = (piece) => {
+  if (typeof piece !== "string" || piece.length === 0) return 0;
+  const key = piece.toLowerCase();
+  return MATERIAL_VALUES[key] ?? 0;
+};
+
+export const materialScoreFromCaptures = (pieces) => {
+  if (!Array.isArray(pieces) || pieces.length === 0) return 0;
+  return pieces.reduce((total, piece) => total + materialValueForPiece(piece), 0);
+};
+
+export const materialBalance = (captures, playerColor = "w") => {
+  const normalizedColor = playerColor === "b" ? "b" : "w";
+  const normalizedCaptures =
+    captures && typeof captures === "object" ? captures : { white: [], black: [] };
+  const playerPieces =
+    normalizedColor === "w" ? normalizedCaptures.white ?? [] : normalizedCaptures.black ?? [];
+  const enginePieces =
+    normalizedColor === "w" ? normalizedCaptures.black ?? [] : normalizedCaptures.white ?? [];
+  const playerScore = materialScoreFromCaptures(playerPieces);
+  const engineScore = materialScoreFromCaptures(enginePieces);
+  const swing = playerScore - engineScore;
+  const advantage = swing === 0 ? "level" : swing > 0 ? "ahead" : "behind";
+  return {
+    playerScore,
+    engineScore,
+    swing,
+    advantage,
+  };
+};
+
+export const summarizeHistory = (history) => {
+  const entries = normalizeHistory(history);
+  const totals = { win: 0, loss: 0, draw: 0 };
+  for (const entry of entries) {
+    if (entry.result === "win") {
+      totals.win += 1;
+    } else if (entry.result === "draw") {
+      totals.draw += 1;
+    } else if (entry.result === "loss") {
+      totals.loss += 1;
+    }
+  }
+  const total = totals.win + totals.draw + totals.loss;
+  const winRate = total === 0 ? 0 : Math.round(((totals.win + totals.draw * 0.5) / total) * 100);
+  let streakResult = null;
+  let streakCount = 0;
+  for (const entry of entries) {
+    if (!streakResult) {
+      streakResult = entry.result;
+      streakCount = 1;
+      continue;
+    }
+    if (entry.result === streakResult) {
+      streakCount += 1;
+    } else {
+      break;
+    }
+  }
+  return {
+    total,
+    wins: totals.win,
+    losses: totals.loss,
+    draws: totals.draw,
+    winRate,
+    currentStreak: {
+      result: streakCount > 0 ? streakResult : null,
+      count: streakCount,
+    },
   };
 };
 

@@ -15,6 +15,9 @@ import {
   STOCKFISH_CDN_URLS,
   boardOrientation,
   capturedPieces,
+  materialScoreFromCaptures,
+  materialBalance,
+  summarizeHistory,
 } from "../app/chess/utils.js";
 
 const BOARD_FEN = "rnbqkbnr/ppp2ppp/4p3/3p4/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq d6 0 3";
@@ -105,6 +108,38 @@ test("capturedPieces tracks missing material", () => {
   const captures = capturedPieces(board);
   assert.deepEqual(captures.white, ["b", "p"]);
   assert.deepEqual(captures.black, []);
+});
+
+test("materialScoreFromCaptures totals piece values", () => {
+  assert.equal(materialScoreFromCaptures(["q", "p", "n"]), 13);
+  assert.equal(materialScoreFromCaptures(["Q", "B"]), 12);
+  assert.equal(materialScoreFromCaptures(), 0);
+});
+
+test("materialBalance adjusts for player perspective", () => {
+  const captures = { white: ["q", "p"], black: ["Q", "R"] };
+  const whiteView = materialBalance(captures, "w");
+  assert.equal(whiteView.swing, -4);
+  assert.equal(whiteView.advantage, "behind");
+  const blackView = materialBalance(captures, "b");
+  assert.equal(blackView.swing, 4);
+  assert.equal(blackView.advantage, "ahead");
+});
+
+test("summarizeHistory tallies totals and streaks", () => {
+  const summary = summarizeHistory([
+    { result: "win" },
+    { result: "win" },
+    { result: "draw" },
+    { result: "loss" },
+  ]);
+  assert.equal(summary.total, 4);
+  assert.equal(summary.wins, 2);
+  assert.equal(summary.draws, 1);
+  assert.equal(summary.losses, 1);
+  assert.equal(summary.winRate, 63);
+  assert.equal(summary.currentStreak.result, "win");
+  assert.equal(summary.currentStreak.count, 2);
 });
 
 test("Stockfish CDN list stays HTTPS", () => {

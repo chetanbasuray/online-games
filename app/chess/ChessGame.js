@@ -22,6 +22,8 @@ import {
   ratingToDifficultyId,
   sanitizeMovesList,
   capturedPieces,
+  materialBalance,
+  summarizeHistory,
 } from "./utils";
 
 const showSupportWidget = isGamePlayable("/chess");
@@ -602,10 +604,14 @@ export default function ChessGame() {
     return "Stockfish CDN";
   }, [engineSource]);
 
-  const engineBadgeClasses = useMemo(() => {
-    if (engineSource === "local") return "border-amber-200 bg-amber-50 text-amber-700";
-    if (engineSource === "loading") return "border-slate-200 bg-slate-100 text-slate-500";
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  const engineStatusDescription = useMemo(() => {
+    if (engineSource === "local") {
+      return "Using the bundled offline worker until the CDN comes back online.";
+    }
+    if (engineSource === "loading") {
+      return "Connecting to Stockfish. This usually takes a second.";
+    }
+    return "Live Stockfish worker streamed from the CDN.";
   }, [engineSource]);
 
   const statusTone = useMemo(() => {
@@ -634,15 +640,53 @@ export default function ChessGame() {
     [captures, playerColor]
   );
 
+  const materialInfo = useMemo(() => materialBalance(captures, playerColor), [captures, playerColor]);
+  const materialTone = useMemo(() => {
+    if (materialInfo.advantage === "ahead") return "border-emerald-200 bg-emerald-50/80 text-emerald-800";
+    if (materialInfo.advantage === "behind") return "border-rose-200 bg-rose-50/80 text-rose-800";
+    return "border-slate-200 bg-white/70 text-slate-700";
+  }, [materialInfo.advantage]);
+  const materialDescription = useMemo(() => {
+    if (materialInfo.advantage === "ahead") {
+      return "You're up material—trade pieces or press the attack.";
+    }
+    if (materialInfo.advantage === "behind") {
+      return "Stockfish has extra material. Hunt for counterplay.";
+    }
+    return "Material is level. Play the position you like.";
+  }, [materialInfo.advantage]);
+  const materialLabel = useMemo(() => {
+    if (materialInfo.swing > 0) return `+${materialInfo.swing}`;
+    if (materialInfo.swing < 0) return `${materialInfo.swing}`;
+    return "0";
+  }, [materialInfo.swing]);
+  const materialProgress = useMemo(() => {
+    const clamped = Math.max(-9, Math.min(9, materialInfo.swing));
+    return ((clamped + 9) / 18) * 100;
+  }, [materialInfo.swing]);
+
+  const historyStats = useMemo(() => summarizeHistory(savedHistory), [savedHistory]);
+  const streakLabel = useMemo(() => {
+    const { currentStreak } = historyStats;
+    if (!currentStreak.result || currentStreak.count === 0) return "No games yet";
+    const label =
+      currentStreak.result === "win"
+        ? "Wins"
+        : currentStreak.result === "loss"
+        ? "Losses"
+        : "Draws";
+    return `${currentStreak.count} ${label}`;
+  }, [historyStats]);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 px-4 py-12">
       {showSupportWidget && <SupportWidget />}
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
         <header className="flex flex-col gap-2 text-center sm:text-left">
-          <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Stockfish training ground</span>
-          <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">Chess arena</h1>
+          <span className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Stockfish training studio</span>
+          <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">Immersive chess arena</h1>
           <p className="max-w-3xl self-center text-sm text-slate-600 sm:self-start sm:text-base">
-            Challenge the engine with a refreshed control hub, flexible color switching, and quick insight into your captured material.
+            Pick a side, follow your momentum, and keep the engine in view with richer status cards, material insights, and a streamlined control board.
           </p>
         </header>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -656,30 +700,63 @@ export default function ChessGame() {
                     Stay focused on the action while streamlined controls keep side selection, restarts, and captured pieces close at hand.
                   </p>
                 </div>
-                <div className="flex flex-col items-start gap-2 text-sm text-slate-600 sm:items-end">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500 shadow-sm">
-                    <span className={`h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
-                    {computerThinking ? "Engine thinking" : "Engine ready"}
-                  </span>
-                  <span className={`inline-flex rounded-full border px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.25em] ${engineBadgeClasses}`}>
-                    {engineStatus}
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
-                    {computerLabel}
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Playing as {playerColorLabel}</span>
+                <div className="text-sm text-slate-600 sm:text-right">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current session</p>
+                  <p className="text-base font-semibold text-slate-900">{computerLabel}</p>
+                  <p className="text-xs text-slate-500">You are playing as {playerColorLabel}.</p>
                 </div>
               </div>
-              <div className={`rounded-2xl border px-4 py-3 text-sm shadow-inner ${statusTone}`}>
-                <p className="font-semibold">{status}</p>
-                {engineSource === "local" && (
-                  <p className="mt-2 text-xs text-slate-600">
-                    Stockfish CDN is unreachable, so the bundled engine is powering your game.
-                  </p>
-                )}
-                {position.inCheck && !result && (
-                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
-                )}
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+                <div
+                  className={`rounded-2xl border px-4 py-3 text-sm shadow-inner ${statusTone}`}
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <p className="font-semibold">{status}</p>
+                  {engineSource === "local" && (
+                    <p className="mt-2 text-xs text-slate-600">
+                      Stockfish CDN is unreachable, so the bundled engine is powering your game.
+                    </p>
+                  )}
+                  {position.inCheck && !result && (
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
+                  )}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className={`rounded-2xl border p-4 shadow-inner ${materialTone}`}>
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em]">Material balance</p>
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <p className="text-3xl font-semibold">{materialLabel}</p>
+                      <span className="text-xs font-semibold uppercase tracking-[0.3em]">
+                        {materialInfo.advantage === "ahead" ? "In your favor" : materialInfo.advantage === "behind" ? "Stockfish ahead" : "Level"}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs">{materialDescription}</p>
+                    <div className="mt-3 h-2 w-full rounded-full bg-white/50">
+                      <span
+                        className="block h-full rounded-full bg-slate-900/60"
+                        style={{ width: `${materialProgress}%` }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Engine channel</p>
+                    <p className="text-sm font-semibold text-slate-900">{engineStatus}</p>
+                    <p className="mt-2 text-xs text-slate-500">{engineStatusDescription}</p>
+                    <div className="mt-4 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm">
+                        <span className={`h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
+                        {computerThinking ? "Engine thinking" : "Engine ready"}
+                      </span>
+                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+                        {computerLabel}
+                      </span>
+                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">{playerColorLabel}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,230px)]">
                 <div className="flex flex-col items-center gap-4">
@@ -839,6 +916,37 @@ export default function ChessGame() {
                 <div className="text-right">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current level</p>
                   <p className="text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
+                </div>
+              </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Games</p>
+                  <p className="text-2xl font-semibold text-slate-900">{historyStats.total}</p>
+                  <p className="text-[0.6rem] text-slate-500">Last 30 tracked</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Win rate</p>
+                  <p className="text-2xl font-semibold text-slate-900">{historyStats.winRate}%</p>
+                  <p className="text-[0.6rem] text-slate-500">Wins + draws/2</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Streak</p>
+                  <p className="text-2xl font-semibold text-slate-900">{historyStats.currentStreak.count || 0}</p>
+                  <p className="text-[0.6rem] text-slate-500">{streakLabel}</p>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-slate-500">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-3 py-2">
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Wins</p>
+                  <p className="text-lg font-semibold text-emerald-700">{historyStats.wins}</p>
+                </div>
+                <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-3 py-2">
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Draws</p>
+                  <p className="text-lg font-semibold text-amber-700">{historyStats.draws}</p>
+                </div>
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 px-3 py-2">
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Losses</p>
+                  <p className="text-lg font-semibold text-rose-700">{historyStats.losses}</p>
                 </div>
               </div>
               <div className="mt-4 space-y-4">

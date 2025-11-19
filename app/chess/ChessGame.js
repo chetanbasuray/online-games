@@ -689,78 +689,42 @@ export default function ChessGame() {
             Pick a side, follow your momentum, and keep the engine in view with richer status cards, material insights, and a streamlined control board.
           </p>
         </header>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_24px_55px_rgba(15,23,42,0.12)] backdrop-blur">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Interactive board</p>
-                  <h2 className="text-2xl font-semibold text-slate-900">Play against Stockfish</h2>
-                  <p className="mt-1 max-w-xl text-sm text-slate-600">
-                    Stay focused on the action while streamlined controls keep side selection, restarts, and captured pieces close at hand.
-                  </p>
-                </div>
-                <div className="text-sm text-slate-600 sm:text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current session</p>
-                  <p className="text-base font-semibold text-slate-900">{computerLabel}</p>
-                  <p className="text-xs text-slate-500">You are playing as {playerColorLabel}.</p>
-                </div>
+        <section className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_24px_55px_rgba(15,23,42,0.12)] backdrop-blur">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Interactive board</p>
+                <h2 className="text-2xl font-semibold text-slate-900">Play against Stockfish</h2>
+                <p className="mt-1 max-w-xl text-sm text-slate-600">
+                  The board now takes center stage while every control, stat, and insight lives in an expandable menu on the right.
+                </p>
               </div>
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-                <div
-                  className={`rounded-2xl border px-4 py-3 text-sm shadow-inner ${statusTone}`}
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  <p className="font-semibold">{status}</p>
-                  {engineSource === "local" && (
-                    <p className="mt-2 text-xs text-slate-600">
-                      Stockfish CDN is unreachable, so the bundled engine is powering your game.
-                    </p>
-                  )}
-                  {position.inCheck && !result && (
-                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
-                  )}
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className={`rounded-2xl border p-4 shadow-inner ${materialTone}`}>
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em]">Material balance</p>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <p className="text-3xl font-semibold">{materialLabel}</p>
-                      <span className="text-xs font-semibold uppercase tracking-[0.3em]">
-                        {materialInfo.advantage === "ahead" ? "In your favor" : materialInfo.advantage === "behind" ? "Stockfish ahead" : "Level"}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs">{materialDescription}</p>
-                    <div className="mt-3 h-2 w-full rounded-full bg-white/50">
-                      <span
-                        className="block h-full rounded-full bg-slate-900/60"
-                        style={{ width: `${materialProgress}%` }}
-                        aria-hidden="true"
-                      />
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Engine channel</p>
-                    <p className="text-sm font-semibold text-slate-900">{engineStatus}</p>
-                    <p className="mt-2 text-xs text-slate-500">{engineStatusDescription}</p>
-                    <div className="mt-4 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
-                      <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm">
-                        <span className={`h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
-                        {computerThinking ? "Engine thinking" : "Engine ready"}
-                      </span>
-                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
-                        {computerLabel}
-                      </span>
-                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">{playerColorLabel}</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-sm text-slate-600 sm:text-right">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current session</p>
+                <p className="text-base font-semibold text-slate-900">{computerLabel}</p>
+                <p className="text-xs text-slate-500">You are playing as {playerColorLabel}.</p>
               </div>
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.45fr)]">
-                <div className="flex flex-col gap-6">
-                  <div className="relative mx-auto aspect-square w-full max-w-2xl sm:max-w-3xl xl:h-[680px] xl:max-w-none">
+            </div>
+            <div className="flex flex-col gap-8 xl:flex-row xl:items-start">
+              <div className="flex-1">
+                <div className="mx-auto flex max-w-4xl flex-col items-center gap-6">
+                  <div
+                    className={`w-full max-w-3xl rounded-2xl border px-4 py-3 text-sm shadow-inner ${statusTone}`}
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <p className="font-semibold">{status}</p>
+                    {engineSource === "local" && (
+                      <p className="mt-2 text-xs text-slate-600">
+                        Stockfish CDN is unreachable, so the bundled engine is powering your game.
+                      </p>
+                    )}
+                    {position.inCheck && !result && (
+                      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.3em] text-rose-600">Check! Protect your king.</p>
+                    )}
+                  </div>
+                  <div className="relative mx-auto aspect-square w-full max-w-3xl sm:max-w-4xl xl:h-[720px] xl:max-w-[720px]">
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 flex justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                       {coordinateFiles.map((file) => (
                         <span key={file}>{file}</span>
@@ -810,127 +774,172 @@ export default function ChessGame() {
                     </div>
                   </div>
                 </div>
-                <aside className="flex flex-col gap-4 xl:sticky xl:top-6">
-                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Choose side</p>
-                        <p className="text-sm font-semibold text-slate-700">{playerColorLabel}</p>
+              </div>
+              <aside className="w-full xl:w-[360px] xl:shrink-0 xl:sticky xl:top-6">
+                <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 text-center shadow-inner">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Session menu</p>
+                  <p className="mt-1 text-base font-semibold text-slate-900">Expand to adjust the experience</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Every option now lives here so the game board stays centered. Open the sections you need.
+                  </p>
+                </div>
+                <div className="mt-4 space-y-4">
+                  <details open className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      Game setup
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <div className="mt-4 space-y-4 text-sm text-slate-600">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Choose side</p>
+                          <p className="text-sm font-semibold text-slate-700">{playerColorLabel}</p>
+                        </div>
+                        <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-inner">
+                          {[
+                            { id: "w", label: "White", icon: PIECES.P },
+                            { id: "b", label: "Black", icon: PIECES.p },
+                          ].map((option) => {
+                            const isActive = option.id === playerColor;
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                aria-pressed={isActive}
+                                className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
+                                  isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
+                                }`}
+                                onClick={() => void handleColorChange(option.id)}
+                                disabled={!engineReady || computerThinking}
+                              >
+                                <span className="text-lg">{option.icon}</span>
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-inner">
-                        {[
-                          { id: "w", label: "White", icon: PIECES.P },
-                          { id: "b", label: "Black", icon: PIECES.p },
-                        ].map((option) => {
-                          const isActive = option.id === playerColor;
-                          return (
-                            <button
-                              key={option.id}
-                              type="button"
-                              aria-pressed={isActive}
-                              className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
-                                isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
-                              }`}
-                              onClick={() => void handleColorChange(option.id)}
-                              disabled={!engineReady || computerThinking}
-                            >
-                              <span className="text-lg">{option.icon}</span>
-                              {option.label}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <p className="text-xs text-slate-500">
+                        Switching colors flips the board, saves your preference, and starts a fresh game automatically.
+                      </p>
+                      <button
+                        type="button"
+                        className={`inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition ${
+                          computerThinking ? "cursor-not-allowed opacity-60" : "hover:border-blue-300 hover:bg-blue-100"
+                        }`}
+                        onClick={() => void startNewGame()}
+                        disabled={computerThinking}
+                      >
+                        Start new game
+                      </button>
                     </div>
-                    <p className="mt-3 text-xs text-slate-500">
-                      Switching colors flips the board, saves your preference, and starts a fresh game automatically.
-                    </p>
-                    <button
-                      type="button"
-                      className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700 shadow-sm transition ${
-                        computerThinking ? "cursor-not-allowed opacity-60" : "hover:border-blue-300 hover:bg-blue-100"
-                      }`}
-                      onClick={() => void startNewGame()}
-                      disabled={computerThinking}
-                    >
-                      Start new game
-                    </button>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Session controls</p>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={autoAdjust}
-                      className={`mt-3 flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                        autoAdjust ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-100 text-slate-600"
-                      }`}
-                      onClick={handleAutoAdjustToggle}
-                    >
-                      <span>Auto adjust difficulty</span>
-                      <span className={`inline-flex h-5 w-10 items-center rounded-full transition ${autoAdjust ? "bg-blue-500" : "bg-slate-400"}`}>
-                        <span
-                          className={`h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ${
-                            autoAdjust ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </span>
-                    </button>
-                    <div className="mt-4">
-                      <label className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                        Manual difficulty
-                      </label>
-                      <select
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                        value={difficultyId}
-                        onChange={(event) => {
-                          const nextId = event.target.value;
-                          setDifficultyId(nextId);
+                  </details>
+                  <details className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      Difficulty & rating
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <div className="mt-4 space-y-4 text-sm text-slate-600">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={autoAdjust}
+                        className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                          autoAdjust ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-100 text-slate-600"
+                        }`}
+                        onClick={handleAutoAdjustToggle}
+                      >
+                        <span>Auto adjust difficulty</span>
+                        <span className={`inline-flex h-5 w-10 items-center rounded-full transition ${autoAdjust ? "bg-blue-500" : "bg-slate-400"}`}>
+                          <span
+                            className={`h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ${
+                              autoAdjust ? "translate-x-5" : "translate-x-1"
+                            }`}
+                          />
+                        </span>
+                      </button>
+                      <div>
+                        <label className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Manual difficulty</label>
+                        <select
+                          className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                          value={difficultyId}
+                          onChange={(event) => {
+                            const nextId = event.target.value;
+                            setDifficultyId(nextId);
+                            persistProgress({
+                              rating,
+                              history: savedHistory,
+                              autoAdjust,
+                              difficultyId: nextId,
+                              color: playerColor,
+                            });
+                          }}
+                          disabled={autoAdjust}
+                        >
+                          {DIFFICULTIES.map((level) => (
+                            <option key={level.id} value={level.id}>
+                              {level.label}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="mt-2 text-xs text-slate-500">
+                          {autoAdjust
+                            ? "Auto mode picks a level after each result."
+                            : "Choose a level to stick with manual control."}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-100"
+                        onClick={() => {
+                          const nextRating = DEFAULT_RATING;
+                          setRating(nextRating);
+                          const nextDifficulty = ratingToDifficultyId(nextRating);
+                          setDifficultyId(nextDifficulty);
+                          setSavedHistory([]);
                           persistProgress({
-                            rating,
-                            history: savedHistory,
+                            rating: nextRating,
+                            history: [],
                             autoAdjust,
-                            difficultyId: nextId,
+                            difficultyId: nextDifficulty,
                             color: playerColor,
                           });
                         }}
-                        disabled={autoAdjust}
                       >
-                        {DIFFICULTIES.map((level) => (
-                          <option key={level.id} value={level.id}>
-                            {level.label}
-                          </option>
-                        ))}
-                      </select>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {autoAdjust
-                          ? "Auto mode picks a level after each result."
-                          : "Choose a level to stick with manual control."}
-                      </p>
+                        Reset rating
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-100"
-                      onClick={() => {
-                        const nextRating = DEFAULT_RATING;
-                        setRating(nextRating);
-                        const nextDifficulty = ratingToDifficultyId(nextRating);
-                        setDifficultyId(nextDifficulty);
-                        setSavedHistory([]);
-                        persistProgress({
-                          rating: nextRating,
-                          history: [],
-                          autoAdjust,
-                          difficultyId: nextDifficulty,
-                          color: playerColor,
-                        });
-                      }}
-                    >
-                      Reset rating
-                    </button>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Captures</p>
-                    <div className="mt-3 space-y-3 text-sm text-slate-600">
+                  </details>
+                  <details className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      Captured material
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <div className="mt-4 space-y-3 text-sm text-slate-600">
                       <div>
                         <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
                           You ({playerColorLabel})
@@ -968,119 +977,181 @@ export default function ChessGame() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Difficulty insight</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
-                    <p className="mt-2 text-xs text-slate-500">{currentDifficulty.description}</p>
-                  </div>
-                </aside>
-              </div>
-            </div>
-          </section>
-          <aside className="flex flex-col gap-6">
-            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_24px_55px_rgba(15,23,42,0.12)] backdrop-blur">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Progress tracker</h2>
-              <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Rating estimate</p>
-                  <p className="text-4xl font-semibold text-slate-900">{rating}</p>
+                  </details>
+                  <details className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      Live insights
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <div className="mt-4 space-y-4 text-sm text-slate-600">
+                      <div className={`rounded-2xl border p-4 shadow-inner ${materialTone}`}>
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em]">Material balance</p>
+                        <div className="mt-2 flex items-baseline gap-2">
+                          <p className="text-3xl font-semibold">{materialLabel}</p>
+                          <span className="text-xs font-semibold uppercase tracking-[0.3em]">
+                            {materialInfo.advantage === "ahead"
+                              ? "In your favor"
+                              : materialInfo.advantage === "behind"
+                              ? "Stockfish ahead"
+                              : "Level"}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs">{materialDescription}</p>
+                        <div className="mt-3 h-2 w-full rounded-full bg-white/50">
+                          <span
+                            className="block h-full rounded-full bg-slate-900/60"
+                            style={{ width: `${materialProgress}%` }}
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Engine channel</p>
+                        <p className="text-sm font-semibold text-slate-900">{engineStatus}</p>
+                        <p className="mt-2 text-xs text-slate-500">{engineStatusDescription}</p>
+                        <div className="mt-4 flex flex-wrap gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                          <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 shadow-sm">
+                            <span className={`h-2 w-2 rounded-full ${computerThinking ? "animate-pulse bg-sky-500" : "bg-emerald-500"}`} />
+                            {computerThinking ? "Engine thinking" : "Engine ready"}
+                          </span>
+                          <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">{computerLabel}</span>
+                          <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1">{playerColorLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                  <details className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      Move list
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <ol className="mt-4 max-h-60 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+                      {movesForDisplay.length === 0 && <li className="text-xs text-slate-400">No moves yet. Make your first move!</li>}
+                      {movesForDisplay.map((move) => (
+                        <li
+                          key={move.id}
+                          className="grid grid-cols-[auto,1fr] items-center gap-3 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
+                        >
+                          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">#{move.moveNumber}</span>
+                          <span className={`text-sm font-medium ${move.isPlayerMove ? movePalette.player : movePalette.engine}`}>
+                            {move.label ?? move.id}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                  <details className="group rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-inner">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                      History & progress
+                      <svg
+                        className="h-4 w-4 text-slate-400 transition group-open:-rotate-180"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </summary>
+                    <div className="mt-4 space-y-4 text-sm text-slate-600">
+                      <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-4">
+                        <div className="flex flex-wrap items-end justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Rating estimate</p>
+                            <p className="text-4xl font-semibold text-slate-900">{rating}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current level</p>
+                            <p className="text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
+                          </div>
+                        </div>
+                        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Games</p>
+                            <p className="text-2xl font-semibold text-slate-900">{historyStats.total}</p>
+                            <p className="text-[0.6rem] text-slate-500">Last 30 tracked</p>
+                          </div>
+                          <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Win rate</p>
+                            <p className="text-2xl font-semibold text-slate-900">{historyStats.winRate}%</p>
+                            <p className="text-[0.6rem] text-slate-500">Wins + draws/2</p>
+                          </div>
+                          <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
+                            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Streak</p>
+                            <p className="text-2xl font-semibold text-slate-900">{historyStats.currentStreak.count || 0}</p>
+                            <p className="text-[0.6rem] text-slate-500">{streakLabel}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-slate-500">
+                          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-3 py-2">
+                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Wins</p>
+                            <p className="text-lg font-semibold text-emerald-700">{historyStats.wins}</p>
+                          </div>
+                          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-3 py-2">
+                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Draws</p>
+                            <p className="text-lg font-semibold text-amber-700">{historyStats.draws}</p>
+                          </div>
+                          <div className="rounded-2xl border border-rose-100 bg-rose-50/60 px-3 py-2">
+                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Losses</p>
+                            <p className="text-lg font-semibold text-rose-700">{historyStats.losses}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Recent results</h3>
+                        <ul className="mt-3 max-h-60 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
+                          {savedHistory.length === 0 && <li className="text-xs text-slate-400">Play games to build your track record.</li>}
+                          {savedHistory.map((item) => {
+                            const level = difficultyById.get(item.difficultyId);
+                            const label = level ? level.label : item.difficultyId;
+                            const date = new Date(item.timestamp);
+                            const outcomeTone =
+                              item.result === "win" ? "text-emerald-600" : item.result === "loss" ? "text-rose-600" : "text-amber-600";
+                            return (
+                              <li
+                                key={`${item.timestamp}-${item.difficultyId}`}
+                                className="flex flex-col rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
+                              >
+                                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{date.toLocaleString()}</span>
+                                <span className={`font-medium ${outcomeTone}`}>
+                                  {item.result === "draw" ? "Draw" : item.result === "win" ? "Win" : "Loss"} vs {label}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Need to tweak opponents or reset your rating? Use the expandable session menu to change colors, difficulties, or wipe progress without leaving the board.
+                      </p>
+                    </div>
+                  </details>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Current level</p>
-                  <p className="text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
-                </div>
-              </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Games</p>
-                  <p className="text-2xl font-semibold text-slate-900">{historyStats.total}</p>
-                  <p className="text-[0.6rem] text-slate-500">Last 30 tracked</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Win rate</p>
-                  <p className="text-2xl font-semibold text-slate-900">{historyStats.winRate}%</p>
-                  <p className="text-[0.6rem] text-slate-500">Wins + draws/2</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 text-center">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">Streak</p>
-                  <p className="text-2xl font-semibold text-slate-900">{historyStats.currentStreak.count || 0}</p>
-                  <p className="text-[0.6rem] text-slate-500">{streakLabel}</p>
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs text-slate-500">
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-3 py-2">
-                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Wins</p>
-                  <p className="text-lg font-semibold text-emerald-700">{historyStats.wins}</p>
-                </div>
-                <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-3 py-2">
-                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Draws</p>
-                  <p className="text-lg font-semibold text-amber-700">{historyStats.draws}</p>
-                </div>
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 px-3 py-2">
-                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.3em]">Losses</p>
-                  <p className="text-lg font-semibold text-rose-700">{historyStats.losses}</p>
-                </div>
-              </div>
-              <div className="mt-5 rounded-2xl border border-slate-200/80 bg-white/70 p-4 text-xs text-slate-500">
-                <p>
-                  Need to tweak opponents or reset your rating? Use the session controls next to the board to change colors,
-                  difficulties, or wipe your progress without leaving the action.
-                </p>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Move list</h2>
-                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-400">Live</span>
-              </div>
-              <ol className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-                {movesForDisplay.length === 0 && <li className="text-xs text-slate-400">No moves yet. Make your first move!</li>}
-                {movesForDisplay.map((move) => (
-                  <li
-                    key={move.id}
-                    className="grid grid-cols-[auto,1fr] items-center gap-3 rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">#{move.moveNumber}</span>
-                    <span className={`text-sm font-medium ${move.isPlayerMove ? movePalette.player : movePalette.engine}`}>
-                      {move.label ?? move.id}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600">Recent results</h2>
-              <ul className="mt-4 max-h-64 space-y-2 overflow-y-auto pr-1 text-sm text-slate-600">
-                {savedHistory.length === 0 && <li className="text-xs text-slate-400">Play games to build your track record.</li>}
-                {savedHistory.map((item) => {
-                  const level = difficultyById.get(item.difficultyId);
-                  const label = level ? level.label : item.difficultyId;
-                  const date = new Date(item.timestamp);
-                  const outcomeTone =
-                    item.result === "win" ? "text-emerald-600" : item.result === "loss" ? "text-rose-600" : "text-amber-600";
-                  return (
-                    <li
-                      key={`${item.timestamp}-${item.difficultyId}`}
-                      className="flex flex-col rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm"
-                    >
-                      <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                        {date.toLocaleString()}
-                      </span>
-                      <span className={`font-medium ${outcomeTone}`}>
-                        {item.result === "draw" ? "Draw" : item.result === "win" ? "Win" : "Loss"} vs {label}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+              </aside>
             </div>
             <GameFooter>
               Challenge Stockfish at tuned levels ranging from training wheels to tournament sharp. Your progress is saved locally so
               you can return to the difficulty that fits your groove.
             </GameFooter>
-          </aside>
-        </div>
+          </div>
+        </section>
+
       </div>
       {promotionOptions && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4">

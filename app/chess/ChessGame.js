@@ -7,7 +7,6 @@ import SupportWidget from "../components/SupportWidget";
 import { isGamePlayable } from "../utils/gameAvailability";
 import {
   DIFFICULTIES,
-  PIECES,
   INITIAL_FEN,
   DEFAULT_RATING,
   DEFAULT_DIFFICULTY_ID,
@@ -25,6 +24,7 @@ import {
   materialBalance,
   summarizeHistory,
 } from "./utils";
+import PieceSprite, { PIECE_LABELS } from "./PieceSprite";
 
 const showSupportWidget = isGamePlayable("/chess");
 
@@ -751,7 +751,6 @@ export default function ChessGame() {
                             : isLastMoveSquare
                             ? "ring-2 ring-emerald-400/70"
                             : "";
-                          const pieceTone = piece && piece === piece.toUpperCase() ? "text-slate-900" : "text-slate-700";
                           return (
                             <button
                               key={key}
@@ -766,7 +765,7 @@ export default function ChessGame() {
                                   <span className="h-3 w-3 rounded-full bg-emerald-500/70 shadow" />
                                 </span>
                               )}
-                              {piece && <span className={`pointer-events-none text-4xl ${pieceTone}`}>{PIECES[piece] ?? ""}</span>}
+                              {piece && <PieceSprite piece={piece} className="pointer-events-none h-12 w-12" />}
                             </button>
                           );
                         })
@@ -805,8 +804,8 @@ export default function ChessGame() {
                         </div>
                         <div className="inline-flex rounded-full bg-slate-100 p-1 shadow-inner">
                           {[
-                            { id: "w", label: "White", icon: PIECES.P },
-                            { id: "b", label: "Black", icon: PIECES.p },
+                            { id: "w", label: "White", piece: "K" },
+                            { id: "b", label: "Black", piece: "k" },
                           ].map((option) => {
                             const isActive = option.id === playerColor;
                             return (
@@ -814,14 +813,21 @@ export default function ChessGame() {
                                 key={option.id}
                                 type="button"
                                 aria-pressed={isActive}
+                                aria-label={`Play as ${option.label}`}
                                 className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${
                                   isActive ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:text-slate-900"
                                 }`}
                                 onClick={() => void handleColorChange(option.id)}
                                 disabled={!engineReady || computerThinking}
                               >
-                                <span className="text-lg">{option.icon}</span>
-                                {option.label}
+                                <PieceSprite
+                                  piece={option.piece}
+                                  className={`h-6 w-6 ${isActive ? "" : "opacity-70"}`}
+                                  tone="controls"
+                                />
+                                <span className="text-xs font-semibold uppercase tracking-[0.3em]">
+                                  {option.label}
+                                </span>
                               </button>
                             );
                           })}
@@ -952,8 +958,9 @@ export default function ChessGame() {
                               <span
                                 key={`player-capture-${piece}-${index}`}
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm"
+                                aria-label={`${PIECE_LABELS[piece.toLowerCase()] ?? "piece"} captured`}
                               >
-                                {PIECES[piece] ?? piece}
+                                <PieceSprite piece={piece} className="pointer-events-none h-8 w-8" tone="controls" />
                               </span>
                             ))
                           )}
@@ -969,8 +976,9 @@ export default function ChessGame() {
                               <span
                                 key={`engine-capture-${piece}-${index}`}
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm"
+                                aria-label={`${PIECE_LABELS[piece.toLowerCase()] ?? "piece"} lost`}
                               >
-                                {PIECES[piece] ?? piece}
+                                <PieceSprite piece={piece} className="pointer-events-none h-8 w-8" tone="controls" />
                               </span>
                             ))
                           )}
@@ -1162,10 +1170,11 @@ export default function ChessGame() {
                 <button
                   key={piece}
                   type="button"
-                  className="flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 text-3xl text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
+                  aria-label={`Promote to ${PIECE_LABELS[piece]}`}
+                  className="flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
                   onClick={() => selectPromotion(piece)}
                 >
-                  {PIECES[piece.toUpperCase()]}
+                  <PieceSprite piece={piece.toUpperCase()} className="pointer-events-none h-10 w-10" tone="controls" />
                 </button>
               ))}
             </div>

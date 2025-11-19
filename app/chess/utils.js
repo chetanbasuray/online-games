@@ -54,21 +54,6 @@ export const DIFFICULTIES = [
   },
 ];
 
-export const PIECES = {
-  p: "♟",
-  r: "♜",
-  n: "♞",
-  b: "♝",
-  q: "♛",
-  k: "♚",
-  P: "♙",
-  R: "♖",
-  N: "♘",
-  B: "♗",
-  Q: "♕",
-  K: "♔",
-};
-
 export const DEFAULT_RATING = 1200;
 export const LOCAL_STORAGE_KEY = "online-games-chess-progress";
 export const DEFAULT_DIFFICULTY_ID = DIFFICULTIES[1]?.id ?? DIFFICULTIES[0].id;

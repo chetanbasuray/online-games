@@ -12,6 +12,13 @@ export const GAMES = [
     description: "Fill each grid with logic and strategy across multiple difficulty levels.",
   },
   {
+    name: "Chess",
+    path: "/chess",
+    isPlayable: true,
+    description:
+      "Battle Stockfish with adaptive difficulty and saved progress to match your growing strength.",
+  },
+  {
     name: "2048",
     path: "/2048",
     isPlayable: true,

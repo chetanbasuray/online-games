@@ -142,6 +142,17 @@ test("summarizeHistory tallies totals and streaks", () => {
   assert.equal(summary.currentStreak.count, 2);
 });
 
+test("summarizeHistory reports empty baselines", () => {
+  const summary = summarizeHistory([]);
+  assert.equal(summary.total, 0);
+  assert.equal(summary.wins, 0);
+  assert.equal(summary.draws, 0);
+  assert.equal(summary.losses, 0);
+  assert.equal(summary.winRate, 0);
+  assert.equal(summary.currentStreak.result, null);
+  assert.equal(summary.currentStreak.count, 0);
+});
+
 test("Stockfish CDN list stays HTTPS", () => {
   assert.ok(Array.isArray(STOCKFISH_CDN_URLS));
   assert.ok(STOCKFISH_CDN_URLS.length >= 2);

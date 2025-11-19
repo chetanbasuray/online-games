@@ -758,9 +758,9 @@ export default function ChessGame() {
                   </div>
                 </div>
               </div>
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,230px)]">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative aspect-square w-full max-w-xl">
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.45fr)]">
+                <div className="flex flex-col gap-6">
+                  <div className="relative mx-auto aspect-square w-full max-w-2xl sm:max-w-3xl xl:h-[680px] xl:max-w-none">
                     <div className="pointer-events-none absolute inset-x-4 bottom-3 flex justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                       {coordinateFiles.map((file) => (
                         <span key={file}>{file}</span>
@@ -810,7 +810,7 @@ export default function ChessGame() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-4">
+                <aside className="flex flex-col gap-4 xl:sticky xl:top-6">
                   <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -853,6 +853,79 @@ export default function ChessGame() {
                       disabled={computerThinking}
                     >
                       Start new game
+                    </button>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Session controls</p>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={autoAdjust}
+                      className={`mt-3 flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                        autoAdjust ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-100 text-slate-600"
+                      }`}
+                      onClick={handleAutoAdjustToggle}
+                    >
+                      <span>Auto adjust difficulty</span>
+                      <span className={`inline-flex h-5 w-10 items-center rounded-full transition ${autoAdjust ? "bg-blue-500" : "bg-slate-400"}`}>
+                        <span
+                          className={`h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ${
+                            autoAdjust ? "translate-x-5" : "translate-x-1"
+                          }`}
+                        />
+                      </span>
+                    </button>
+                    <div className="mt-4">
+                      <label className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                        Manual difficulty
+                      </label>
+                      <select
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                        value={difficultyId}
+                        onChange={(event) => {
+                          const nextId = event.target.value;
+                          setDifficultyId(nextId);
+                          persistProgress({
+                            rating,
+                            history: savedHistory,
+                            autoAdjust,
+                            difficultyId: nextId,
+                            color: playerColor,
+                          });
+                        }}
+                        disabled={autoAdjust}
+                      >
+                        {DIFFICULTIES.map((level) => (
+                          <option key={level.id} value={level.id}>
+                            {level.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {autoAdjust
+                          ? "Auto mode picks a level after each result."
+                          : "Choose a level to stick with manual control."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-100"
+                      onClick={() => {
+                        const nextRating = DEFAULT_RATING;
+                        setRating(nextRating);
+                        const nextDifficulty = ratingToDifficultyId(nextRating);
+                        setDifficultyId(nextDifficulty);
+                        setSavedHistory([]);
+                        persistProgress({
+                          rating: nextRating,
+                          history: [],
+                          autoAdjust,
+                          difficultyId: nextDifficulty,
+                          color: playerColor,
+                        });
+                      }}
+                    >
+                      Reset rating
                     </button>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-inner">
@@ -901,7 +974,7 @@ export default function ChessGame() {
                     <p className="mt-1 text-sm font-semibold text-slate-700">{currentDifficulty.label}</p>
                     <p className="mt-2 text-xs text-slate-500">{currentDifficulty.description}</p>
                   </div>
-                </div>
+                </aside>
               </div>
             </div>
           </section>
@@ -949,73 +1022,11 @@ export default function ChessGame() {
                   <p className="text-lg font-semibold text-rose-700">{historyStats.losses}</p>
                 </div>
               </div>
-              <div className="mt-4 space-y-4">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={autoAdjust}
-                  className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                    autoAdjust ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-slate-100 text-slate-600"
-                  }`}
-                  onClick={handleAutoAdjustToggle}
-                >
-                  <span>Auto adjust difficulty</span>
-                  <span className={`inline-flex h-5 w-10 items-center rounded-full transition ${autoAdjust ? "bg-blue-500" : "bg-slate-400"}`}>
-                    <span
-                      className={`h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ${
-                        autoAdjust ? "translate-x-5" : "translate-x-1"
-                      }`}
-                    />
-                  </span>
-                </button>
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Manual difficulty</label>
-                  <select
-                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-                    value={difficultyId}
-                    onChange={(event) => {
-                      const nextId = event.target.value;
-                      setDifficultyId(nextId);
-                      persistProgress({
-                        rating,
-                        history: savedHistory,
-                        autoAdjust,
-                        difficultyId: nextId,
-                        color: playerColor,
-                      });
-                    }}
-                    disabled={autoAdjust}
-                  >
-                    {DIFFICULTIES.map((level) => (
-                      <option key={level.id} value={level.id}>
-                        {level.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-2 text-xs text-slate-500">
-                    {autoAdjust ? "Auto mode picks a level after each result." : "Choose a level to stick with manual control."}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-100"
-                  onClick={() => {
-                    const nextRating = DEFAULT_RATING;
-                    setRating(nextRating);
-                    const nextDifficulty = ratingToDifficultyId(nextRating);
-                    setDifficultyId(nextDifficulty);
-                    setSavedHistory([]);
-                    persistProgress({
-                      rating: nextRating,
-                      history: [],
-                      autoAdjust,
-                      difficultyId: nextDifficulty,
-                      color: playerColor,
-                    });
-                  }}
-                >
-                  Reset rating
-                </button>
+              <div className="mt-5 rounded-2xl border border-slate-200/80 bg-white/70 p-4 text-xs text-slate-500">
+                <p>
+                  Need to tweak opponents or reset your rating? Use the session controls next to the board to change colors,
+                  difficulties, or wipe your progress without leaving the action.
+                </p>
               </div>
             </div>
             <div className="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">

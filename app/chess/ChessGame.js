@@ -735,7 +735,7 @@ export default function ChessGame() {
                         <span key={rank}>{rank}</span>
                       ))}
                     </div>
-                    <div className="grid h-full w-full grid-cols-8 overflow-hidden rounded-2xl border border-slate-200 shadow-[0_25px_45px_-30px_rgba(15,23,42,0.55)]">
+                    <div className="grid h-full w-full grid-cols-8 grid-rows-8 overflow-hidden rounded-2xl border border-slate-200 shadow-[0_25px_45px_-30px_rgba(15,23,42,0.55)]">
                       {boardSquares.map((row) =>
                         row.map((square) => {
                           const { key, piece, isLight, isSelected, isTarget, isLastMoveSquare } = square;
@@ -757,7 +757,7 @@ export default function ChessGame() {
                               type="button"
                               aria-label={key}
                               aria-pressed={isSelected}
-                              className={`${baseBg} ${ringClass} relative flex items-center justify-center text-3xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
+                              className={`${baseBg} ${ringClass} relative flex aspect-square h-full w-full items-center justify-center text-3xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
                               onClick={() => onSquareClick(key)}
                             >
                               {isTarget && (

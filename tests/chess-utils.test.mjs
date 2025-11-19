@@ -31,6 +31,15 @@ test("fenToBoard parses 8x8 grid", () => {
   assert.equal(board[5][2], null);
 });
 
+test("fenToBoard retains structure for empty boards", () => {
+  const board = fenToBoard("8/8/8/8/8/8/8/8 w - - 0 1");
+  assert.equal(board.length, 8);
+  board.forEach((rank) => {
+    assert.equal(rank.length, 8);
+    rank.forEach((square) => assert.equal(square, null));
+  });
+});
+
 test("ratingToDifficultyId chooses progressive levels", () => {
   const ordered = DIFFICULTIES.map((level) => level.minRating);
   const baseline = ratingToDifficultyId(ordered[0]);

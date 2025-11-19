@@ -14,6 +14,12 @@ test("PieceSprite renders svg output for each piece", () => {
   }
 });
 
+test("PieceSprite uses a consistent view box", () => {
+  const markup = renderToStaticMarkup(createElement(PieceSprite, { piece: "K" }));
+  assert.ok(markup.includes('viewBox="0 0 64 64"'));
+  assert.ok(markup.includes('class="h-full w-full"'));
+});
+
 test("PieceSprite gracefully handles unknown pieces", () => {
   const markup = renderToStaticMarkup(createElement(PieceSprite, { piece: "x" }));
   assert.strictEqual(markup, "");

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import GameFooter from "../components/GameFooter";
 
-import { BOARD_WIDTH, advanceGameState, createGameState, getTickInterval } from "./logic";
+import { BOARD_WIDTH, advanceGameState, createGameState, getTickInterval } from "./logic.js";
 import { getPacmanOriginsDisplay } from "./history";
+import { getBoardStyle, getPelletStyle } from "./display";
 
 const KEY_TO_DIRECTION = {
   ArrowUp: "up",
@@ -96,14 +97,11 @@ export default function PacmanGame() {
         <div className="grid gap-4 lg:grid-cols-[auto,280px]">
           <div className="flex items-center justify-center">
             <div
-              className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-4 shadow-inner shadow-blue-500/10"
+              className="rounded-3xl border border-blue-400/25 bg-slate-950/70 p-5 shadow-[0_20px_60px_rgba(14,165,233,0.2)]"
             >
               <div
-                className="grid gap-[2px] bg-slate-950/60 p-2"
-                style={{
-                  gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))`,
-                  width: BOARD_WIDTH * 24,
-                }}
+                className="grid rounded-2xl bg-slate-900/50 p-2"
+                style={getBoardStyle(BOARD_WIDTH)}
               >
                 {state.board.map((row, y) =>
                   row.map((cell, x) => {
@@ -114,19 +112,25 @@ export default function PacmanGame() {
                     const isGhost = ghostIndex !== -1;
                     const tileClasses =
                       cell === "#"
-                        ? "bg-slate-900 shadow-[inset_0_0_10px_rgba(59,130,246,0.5)]"
-                        : "bg-slate-900/40";
+                        ? "bg-slate-900 shadow-[inset_0_0_12px_rgba(59,130,246,0.55)]"
+                        : "bg-slate-900/60 backdrop-blur";
 
                     return (
                       <div
                         key={`${x}-${y}`}
-                        className={`${tileClasses} relative aspect-square rounded-sm border border-slate-800/70`}
+                        className={`${tileClasses} relative aspect-square rounded-[6px] border border-slate-800/70 shadow-inner shadow-blue-500/10`}
                       >
                         {cell === "." && !isPacman && !isGhost && (
-                          <span className="absolute left-1/2 top-1/2 block h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200" />
+                          <span
+                            className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-200 shadow-[0_0_8px_rgba(251,191,36,0.5)]"
+                            style={getPelletStyle(false)}
+                          />
                         )}
                         {cell === "o" && !isPacman && !isGhost && (
-                          <span className="absolute left-1/2 top-1/2 block h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
+                          <span
+                            className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300 shadow-[0_0_14px_rgba(251,191,36,0.85)]"
+                            style={getPelletStyle(true)}
+                          />
                         )}
                         {isGhost && <Ghost colorClass={GHOST_COLORS[ghostIndex % GHOST_COLORS.length]} />}
                         {isPacman && <Pacman powerMode={state.powerTimer > 0} />}
@@ -238,7 +242,7 @@ function Lives({ count }) {
 function Ghost({ colorClass }) {
   return (
     <div
-      className={`absolute inset-0 m-auto flex h-5 w-5 items-center justify-center rounded-lg ${colorClass} shadow-[0_0_8px_rgba(255,255,255,0.4)]`}
+      className={`absolute inset-0 m-auto flex h-6 w-6 items-center justify-center rounded-lg ${colorClass} shadow-[0_0_8px_rgba(255,255,255,0.4)]`}
     >
       <span className="text-[10px] text-white">👻</span>
     </div>
@@ -247,7 +251,7 @@ function Ghost({ colorClass }) {
 
 function Pacman({ powerMode }) {
   return (
-    <div className="absolute inset-0 m-auto flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.6)]">
+    <div className="absolute inset-0 m-auto flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 shadow-[0_0_14px_rgba(251,191,36,0.65)]">
       <span className="text-[10px]" role="img" aria-label="Pac-Man">
         {powerMode ? "😮" : "😋"}
       </span>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { BOARD_WIDTH, advanceGameState, createGameState, getTickInterval } from "./logic";
+import { PACMAN_ORIGINS, formatPacmanOriginSummary } from "./history";
 
 const KEY_TO_DIRECTION = {
   ArrowUp: "up",
@@ -160,6 +161,18 @@ export default function PacmanGame() {
                 Move with Arrow Keys or WASD. Power orbs let you eat ghosts for bonus points. Clear the maze to win before your
                 three lives run out.
               </p>
+            </div>
+            <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-amber-50">
+              <p className="text-sm font-semibold">Who invented Pac-Man?</p>
+              <p className="text-xs text-amber-50/90">{formatPacmanOriginSummary()}</p>
+              <a
+                className="mt-2 inline-block text-xs font-semibold text-amber-200 underline underline-offset-4 transition hover:text-amber-100"
+                href={PACMAN_ORIGINS.officialSite}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Visit the official Pac-Man site
+              </a>
             </div>
           </div>
         </div>

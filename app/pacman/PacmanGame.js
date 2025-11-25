@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { BOARD_WIDTH, advanceGameState, createGameState } from "./logic";
+import { BOARD_WIDTH, advanceGameState, createGameState, getTickInterval } from "./logic";
 
 const KEY_TO_DIRECTION = {
   ArrowUp: "up",
@@ -42,12 +42,13 @@ export default function PacmanGame() {
   }, []);
 
   useEffect(() => {
+    const interval = getTickInterval(state.score);
     const id = setInterval(() => {
       setState((prev) => advanceGameState(prev));
-    }, 170);
+    }, interval);
 
     return () => clearInterval(id);
-  }, []);
+  }, [state.score]);
 
   const handleRestart = () => {
     setState(createGameState());

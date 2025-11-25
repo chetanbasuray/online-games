@@ -9,6 +9,7 @@ import {
   buildBoardState,
   canMove,
   createGameState,
+  getTickInterval,
 } from "../app/pacman/logic.js";
 
 test("board builder prepares consistent maze", () => {
@@ -69,4 +70,12 @@ test("pacman loses lives on collisions without power", () => {
   const next = advanceGameState(state);
   assert.equal(next.lives, 1);
   assert.deepEqual(next.pacman.position, PACMAN_START);
+});
+
+test("tick interval decreases in steps as score grows", () => {
+  assert.equal(getTickInterval(0), 240);
+  assert.equal(getTickInterval(149), 240);
+  assert.equal(getTickInterval(150), 225);
+  assert.equal(getTickInterval(450), 195);
+  assert.equal(getTickInterval(1500), 120);
 });

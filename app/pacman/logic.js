@@ -301,3 +301,16 @@ export function advanceGameState(state) {
 
   return nextState;
 }
+
+export function getTickInterval(score) {
+  const baseInterval = 240;
+  const minimumInterval = 120;
+  const thresholdStep = 150;
+  const stepDecrease = 15;
+
+  const completedSteps = Math.floor(score / thresholdStep);
+  const decreased = completedSteps * stepDecrease;
+  const interval = baseInterval - decreased;
+
+  return Math.max(interval, minimumInterval);
+}

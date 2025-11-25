@@ -51,4 +51,11 @@ export const GAMES = [
     description:
       "Spin eight radiant letters into cascading words, unlock harder levels, and chase each round's escalating score goal.",
   },
+  {
+    name: "Pac-Man",
+    path: "/pacman",
+    isPlayable: true,
+    description:
+      "Navigate a neon maze, devour pellets, trigger power orbs, and turn the tables on colorful ghosts before lives run out.",
+  },
 ];

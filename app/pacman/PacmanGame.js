@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import GameFooter from "../components/GameFooter";
+
 import { BOARD_WIDTH, advanceGameState, createGameState, getTickInterval } from "./logic";
-import { PACMAN_ORIGINS, formatPacmanOriginSummary } from "./history";
+import { getPacmanOriginsDisplay } from "./history";
 
 const KEY_TO_DIRECTION = {
   ArrowUp: "up",
@@ -26,6 +28,7 @@ export default function PacmanGame() {
     () => Math.max(0, totalPellets - state.pelletsRemaining),
     [state.pelletsRemaining, totalPellets],
   );
+  const originDisplay = useMemo(() => getPacmanOriginsDisplay(), []);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -155,27 +158,52 @@ export default function PacmanGame() {
                 <span className="font-semibold text-white">{statusLabel}</span>
               </li>
             </ul>
-            <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-blue-50">
-              <p className="text-sm font-semibold">How to play</p>
-              <p className="text-xs text-blue-100/80">
-                Move with Arrow Keys or WASD. Power orbs let you eat ghosts for bonus points. Clear the maze to win before your
-                three lives run out.
-              </p>
+            <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner shadow-blue-500/10">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-100/80">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/30 text-[0.8rem]">🎮</span>
+                <span>How to play</span>
+              </div>
+              <ul className="space-y-2 text-[13px] text-slate-100/80">
+                <li className="flex items-start gap-2">
+                  <span className="mt-[2px] text-blue-200">➤</span>
+                  <span>Move with Arrow Keys or WASD to sweep the maze without losing all three lives.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-[2px] text-blue-200">➤</span>
+                  <span>Power orbs let you eat ghosts for a burst of points and a brief safety window.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-[2px] text-blue-200">➤</span>
+                  <span>As your score rises, Pac-Man accelerates—collecting pellets speeds the action up.</span>
+                </li>
+              </ul>
             </div>
-            <div className="rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-amber-50">
-              <p className="text-sm font-semibold">Who invented Pac-Man?</p>
-              <p className="text-xs text-amber-50/90">{formatPacmanOriginSummary()}</p>
+            <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-900/60 to-slate-950/80 px-4 py-3 shadow-inner shadow-slate-950/40">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/80">{originDisplay.heading}</p>
+              <p className="mt-2 text-sm text-slate-100/80">{originDisplay.summary}</p>
               <a
-                className="mt-2 inline-block text-xs font-semibold text-amber-200 underline underline-offset-4 transition hover:text-amber-100"
-                href={PACMAN_ORIGINS.officialSite}
+                className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-blue-100 underline underline-offset-4 transition hover:text-white"
+                href={originDisplay.officialSite}
                 target="_blank"
                 rel="noreferrer"
               >
-                Visit the official Pac-Man site
+                {originDisplay.linkLabel}
+                <span aria-hidden>↗</span>
               </a>
             </div>
           </div>
         </div>
+
+        <GameFooter
+          gameName="Pac-Man"
+          creator={originDisplay.creatorLine}
+          moreInfo={{
+            url: originDisplay.officialSite,
+            label: originDisplay.linkLabel,
+          }}
+          className="w-full max-w-2xl lg:max-w-lg lg:self-start"
+          variant="cosmic"
+        />
       </div>
     </div>
   );
